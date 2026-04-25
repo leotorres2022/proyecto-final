@@ -13,13 +13,15 @@ const useSociosStore = defineStore('socios', () => {
     email: '',
     telefono: ''
   })
-const url = 'socios'
+const url = 'api/socios/'
   async function getAll()
   {
-    const data = await ApiService.getAll(url)
-    if (data) {
+    try {
+      const data = await ApiService.getAll(url)
       socios.value = data
-              }
+    } catch (error) {
+      console.error('Error al obtener socios:', error)
+    }
   }
   async function create(socio: Socios) {
     const response = await ApiService.create(url, socio)
@@ -31,7 +33,7 @@ const url = 'socios'
 
  async function update(socio: Socios) {
     if (socio.id) {
-    const data = await ApiService.update(url +'/',socio.id, socio)
+    const data = await ApiService.update(url, socio.id, socio)
     if (data) {
       return data
     }
@@ -39,7 +41,7 @@ const url = 'socios'
   }
 
   async function destroy(id: number) {
-    const data = await ApiService.destroy(url + '/', id)
+    const data = await ApiService.destroy(url, id)
     if (data) {
       return data
           }

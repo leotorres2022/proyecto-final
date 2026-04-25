@@ -1,14 +1,8 @@
 import { instance  as axios } from "@/plugins/axios"
 class ApiService {
   static async getAll(url: string) {
-    try {
-      const response = await axios.get(url);
-      if (response) {
-        return response.data
-      }
-       } catch (error) {
-            return error;
-    }
+    const response = await axios.get(url);
+    return response.data
   }
 static async create (url: string, data: object) {
   try {
@@ -23,7 +17,7 @@ static async create (url: string, data: object) {
 
 static async update (url: string, id: number, data: object) {
   try {
-    const response = await axios.put(url+id, data);
+    const response = await axios.put(`${url}${id}/`, data);
     if (response) {
       return response.data
     }
@@ -33,7 +27,7 @@ static async update (url: string, id: number, data: object) {
 }
 static async destroy (url: string, id: number) {
     try {
-      const response = await axios.delete(url+id);
+      const response = await axios.delete(`${url}${id}/`);
       if (response) {
         return response.data
       }
