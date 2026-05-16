@@ -19,13 +19,13 @@
         <option v-for="talle in talles" :key="talle.id" :value="talle">
           {{ talle.nombre }}
         </option>
-      </select>
+       </select>
         <label for="" >Categoria</label>
       <select v-model="compra.categoria" required>
         <option v-for="categoria in categorias" :key="categoria.id" :value="categoria">
           {{ categoria.nombre }}
         </option>
-      </select>
+      </select> 
        </div>
       <button type="submit">Crear</button>
     </form>
@@ -49,15 +49,25 @@ const limpiar = () => {
   compra.value.socio = undefined
 }
 
-const { talles, getAll: getAllTalles } = UseTallesStore()
-const { socios, getAll: getAllSocios } = UseSociosStore()
-const { categorias, getAll: getAllCategorias } = UseCategoriasStore()
-const {compra:compra} = toRefs(UseComprasStore())
-const {create} = UseComprasStore()
+const tallesStore = UseTallesStore()
+const sociosStore = UseSociosStore()
+const categoriasStore = UseCategoriasStore()
+const comprasStore = UseComprasStore()
+
+const { talles } = toRefs(tallesStore)
+const { socios } = toRefs(sociosStore)
+const { categorias } = toRefs(categoriasStore)
+const { compra } = toRefs(comprasStore)
+
+const { getAll: getAllTalles } = tallesStore
+const { getAll: getAllSocios } = sociosStore
+const { getAll: getAllCategorias } = categoriasStore
+const { create } = comprasStore
 
 
 
 import { onMounted } from 'vue'
+import type { Compras } from '@/interfaces/Compras'
 onMounted(async () => {
 await getAllTalles()
 await getAllSocios()
@@ -67,56 +77,68 @@ limpiar()
 
 })
 
-const crear = async ()=> {
-  if (!compra.value.descripcion) {
-    alert('La descripcion de la es obligatoria')
-    }
-  else if (compra.value.precio <= 0) {
-    alert('El precio debe ser mayor a 0')
+const crear = async () => {
+  // 1. Validaciones locales para evitar tocar el store prematuramente
+  const item = compra.value;
+
+  if (!item.descripcion?.trim()) {
+    return alert('La descripción es obligatoria');
   }
-  else if (compra.value.cantidad < 0) {
-    alert('la cantidad no puede ser negativo')
+  if (Number(item.precio) <= 0) {
+    return alert('El precio debe ser mayor a 0');
   }
-  else if (!compra.value.talle) {
-    alert('Debe seleccionar un Talle')
+  if (Number(item.cantidad) <= 0) {
+    return alert('La cantidad debe ser mayor a 0');
   }
-  else if (!compra.value.categoria) {
-     alert('Debe seleccionar una categoria')
+  if (!item.talle) {
+    return alert('Debe seleccionar un Talle');
   }
-   else if (!compra.value.socio){
-     alert('Debe ingresar un Nro de Socio')
+  if (!item.categoria) {
+    return alert('Debe seleccionar una categoría');
+  }
+  if (!item.socio) {
+    return alert('Debe seleccionar un Socio');
   }
 
-else {
-    const cantidad = Number(compra.value.cantidad)
-  const precioUnitario = Number(compra.value.precio)
-    const articulo_json = {
-      descripcion: compra.value.descripcion,
-      precio: precioUnitario* cantidad,
-      cantidad: Number(compra.value.cantidad),
-      talle_id: compra.value.talle?.id,
-      categoria_id: compra.value.categoria?.id,
-      socio_id: compra.value.socio?.id,
 
-    }
-    console.log('Articulo a crear:', articulo_json)
-    try {
-      await create(articulo_json)
-      console.log(' creada correctamente:', articulo_json)
-      alert('Compra creada correctamente')
-      // Resetear los campos del formulario
-      compra.value.descripcion= ''
-      compra.value.precio= 0
-      compra.value.cantidad= 0
-      compra.value.talle= undefined
-      compra.value.categoria= undefined
-      compra.value.socio= undefined
+  const articulo_json = {
+    descripcion: item.descripcion,
+    precio: Number(item.precio) * Number(item.cantidad),
+    cantidad: Number(item.cantidad),
+    talle: item.talle.id || item.talle,
+    categoria: item.categoria.id || item.categoria,
+    socio: item.socio.id || item.socio,
+  };
 
-    } catch (error) {
-      console.error('Error al crear compra:', error)
-      alert('Error al crear compra. Revisa la consola para más detalles.')
-    }
+  console.log('Enviando a Django:', articulo_json);
+
+  try {
+    // Usamos "as any" para que TypeScript no se queje de que falta el objeto completo
+    await create(articulo_json as any);
+    
+    alert('Compra creada correctamente');
+    
+    // 3. Resetear el store correctamente
+    limpiarFormulario();
+    
+  } catch (error: any) {
+    console.error('Error detallado:', error.response?.data || error);
+    const mensaje = error.response?.data 
+      ? JSON.stringify(error.response.data) 
+      : 'Error de conexión con el servidor';
+    alert('Error al crear compra: ' + mensaje);
   }
+}
+
+const limpiarFormulario = () => {
+  compra.value = {
+    descripcion: '',
+    precio: 0,
+    cantidad: 0,
+    talle: undefined,
+    categoria: undefined,
+    socio: undefined
+  };
 }
 
 </script>

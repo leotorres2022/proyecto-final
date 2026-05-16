@@ -15,7 +15,7 @@ const talles_routes = [
         component: () => import('../components/talles/TallesUpdate.vue'),
       },
       {
-        path: '',
+        path: 'create',
         name: 'talles_create',
         component: () => import('../components/talles/TallesCreate.vue'),
       },

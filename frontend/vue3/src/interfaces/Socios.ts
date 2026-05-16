@@ -4,4 +4,5 @@ export interface Socios{
   direccion: string;
   email: string;
   telefono: string;
+ estado: 'Activo' | 'Moroso' | 'Pendiente'; 
 }

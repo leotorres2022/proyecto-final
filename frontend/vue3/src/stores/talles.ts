@@ -6,19 +6,21 @@ import type  {Talles}   from '@/interfaces/Talles'
 
 const useTallesStore = defineStore('talles', () => {
   const talles = ref<Array<Talles>>([])
-  const talle= ref<Talles>({
+  const talle = ref<Talles>({
     id: 0,
-    nombre: '',
+    nombre: ''
   })
-const url = 'talles'
+const url = 'api/talles/'
   async function getAll()
   {
-    const data = await ApiService.getAll(url)
-    if (data) {
+    try {
+      const data = await ApiService.getAll(url)
       talles.value = data
-              }
+    } catch (error) {
+      console.error('Error al obtener talles:', error)
+    }
   }
-  async function create(talle:Talles) {
+  async function create(talle: Talles) {
     const response = await ApiService.create(url, talle)
     if (response) {
            return response
@@ -28,7 +30,7 @@ const url = 'talles'
 
  async function update(talle: Talles) {
     if (talle.id) {
-    const data = await ApiService.update(url +'/',talle.id, talle)
+    const data = await ApiService.update(url, talle.id, talle)
     if (data) {
       return data
     }
@@ -36,12 +38,12 @@ const url = 'talles'
   }
 
   async function destroy(id: number) {
-    const data = await ApiService.destroy(url + '/', id)
+    const data = await ApiService.destroy(url, id)
     if (data) {
       return data
           }
   }
-return { talles: talles,talle: talle , getAll, destroy, create, update }
+return { talles, talle , getAll, destroy, create, update }
 
 })
 

@@ -8,6 +8,7 @@
         <li><router-link :to="{name:'galeria'}">GALERIA</router-link></li>
         <li><router-link :to="{name:'socios_list'}">SOCIOS</router-link></li>
         <li><router-link :to="{name:'compras_list'}">COMPRAS</router-link></li>
+        <li><router-link :to="{name:'division_home'}">DIVISIONES</router-link></li>
         <li style="display: flex; align-items: center; justify-content: center;">
   <i class="pi pi-user" style="font-size: 1.8rem; color: white; margin-right: 8px;"></i>
   <select v-model="modoUsuario" style="font-size: 1rem; padding: 6px; border-radius: 6px;">
@@ -60,6 +61,9 @@
         <li><router-link :to="{name:'galeria'}">GALERIA</router-link></li>
         <li><router-link :to="{name:'socios_list'}">SOCIOS</router-link></li>
         <li><router-link :to="{name:'compras_list'}">COMPRAS</router-link></li>
+     
+
+          
       </ul>
     </div>
 
@@ -101,6 +105,13 @@ const modoUsuario = computed({
 </script>
 
 <style scoped>
+
+
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden; /* Evita el scroll horizontal */
+}
 .app-container {
   display: flex;
   flex-direction: column;
@@ -147,7 +158,7 @@ const modoUsuario = computed({
 /* Estilos para el main */
 .main-content {
   flex: 1;
-  padding: 40px;
+ 
 
 }
 

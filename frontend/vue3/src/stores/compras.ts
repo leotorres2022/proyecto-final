@@ -18,7 +18,7 @@ const useComprasStore = defineStore('compras', () => {
     categoria: {} as Categorias,
     socio: {} as Socios
   })
-const url = 'compras'
+const url = 'api/compras'
   async function getAll()
   {
     const data = await ApiService.getAll(url)

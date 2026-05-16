@@ -10,7 +10,7 @@ const useCategoriasStore = defineStore('categorias', () => {
     id: 0,
     nombre: '',
   })
-const url = 'categorias'
+const url = 'api/categorias'
   async function getAll()
   {
     const data = await ApiService.getAll(url)

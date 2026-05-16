@@ -8,6 +8,7 @@ import socios_routes from './socios_routes'
 import galeria_routes from './galeria_routes'
 import talles_routes from './talles_routes'
 import compras_routes from './compras_routes'
+import division_routes from './division_routes'
 
 
 const router = createRouter({
@@ -24,10 +25,11 @@ const router = createRouter({
   ...galeria_routes,
   ...talles_routes,
   ...compras_routes,
-
+  ...division_routes,
     { path: '/configuraciones', name: 'configuraciones', component: ConfiguracionesView },
     { path: '/club', name: 'club', component: ClubView },
-     ],
+     
+  ],
 })
 
 export default router

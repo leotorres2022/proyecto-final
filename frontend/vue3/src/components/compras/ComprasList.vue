@@ -14,22 +14,26 @@
       </tr>
     </thead>
     <tbody>
-      <tr v-for="compra in compras" :key="compra.id">
-        <td>{{ compra.id }}</td>
-        <td>{{ compra.descripcion }}</td>
-        <td>{{ compra.precio }}</td>
-        <td>{{ compra.cantidad }}</td>
-        <td>{{ compra.talle?.nombre|| 'Sin talle' }}</td>
-        <td>{{ compra.categoria?.nombre || 'Sin categoria' }}</td>
-        <td> {{ compra.socio?.nombre || 'Sin nombre'}}</td>
-        <router-link v-if="userStore.modo === 'admin'"  :to="{name:'compras_update',params:{id:compra.id}}">
-          <i class="pi pi-pencil" style="font-size: 1.5rem" ></i></router-link>
-          <router-link v-if="userStore.modo === 'admin'"  :to="{name:'compras_show',params:{id:compra.id}}">
-            <i class="pi pi-eye" style="font-size: 1.5rem"></i></router-link>
-          <button v-if="userStore.modo === 'admin'" @click.prevent="eliminar(compra.id as number)">
-            <i class="pi pi-trash" style="font-size: 1.5rem"></i></button>
+<tr v-for="compra in compras" :key="compra.id">
+  <td>{{ compra.id }}</td>
+  <td>{{ compra.descripcion }}</td>
+  <td>{{ compra.precio }}</td>
+  <td>{{ compra.cantidad }}</td>
+  
+  <!-- Cambiamos .talle?.nombre por .talle_detalle -->
+  <td>{{ compra.talle|| 'Sin talle' }}</td>
+  
+  <!-- Cambiamos .categoria?.nombre por .categoria_detalle -->
+  <td>{{ compra.categoria|| 'Sin categoria' }}</td>
+  
+  <!-- Cambiamos .socio?.nombre por .socio_detalle -->
+  <td>{{ compra.socio || 'Sin nombre' }}</td>
 
-      </tr>
+  <!-- Resto de tus acciones (pencil, eye, trash) -->
+  <td v-if="userStore.modo === 'admin'">
+     <!-- Tus botones aquí... -->
+  </td>
+</tr>
     </tbody>
   </table>
 </template>

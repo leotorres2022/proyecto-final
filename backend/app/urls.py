@@ -16,8 +16,27 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from rest_framework import routers
+from socios.views import SocioViewSet
+from talles.views import TalleViewSet
+from categorias.views import CategoriaViewSet
+from compras.views import CompraViewSet 
 
+# 1. Configuración de Routers (Solo para ViewSets de Socios, Talles, etc.)
+router = routers.DefaultRouter()
+router.register(r'socios', SocioViewSet)
+router.register(r'talles', TalleViewSet)
+router.register(r'categorias', CategoriaViewSet)
+router.register(r'compras', CompraViewSet)
+
+# 2. Configuración de URLs
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('socios.urls')),
+    
+    # Rutas automáticas del router (socios, talles, etc.)
+    path('api/', include(router.urls)),
+    
+    # Rutas manuales de TORNEOS (Donde están divisiones, tabla y partidos)
+    # IMPORTANTE: Esto hará que las rutas empiecen con 'api/torneos/'
+    path('api/torneos/', include('torneos.urls')),
 ]

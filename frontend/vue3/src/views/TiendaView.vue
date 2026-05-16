@@ -5,6 +5,7 @@
     <i class="pi pi-cog" style="font-size: 2rem"></i>
   </router-link>
 
+
   <!-- Lista de productos -->
   <div class="productos-grid">
 
@@ -30,13 +31,23 @@
 
 <script setup lang="ts">
 import 'primeicons/primeicons.css'
+import { onMounted, toRefs } from 'vue'
 import { useRouter } from 'vue-router'
 import useComprasStore from '@/stores/compras'
 import type { Producto } from '@/interfaces/Producto'
 import useUserStore from '@/stores/user'
+import useCategoriasStore from '@/stores/categorias'
+
 const userStore = useUserStore()
 const router = useRouter()
 const comprasStore = useComprasStore()
+const categoriasStore = useCategoriasStore()
+const { categorias } = toRefs(categoriasStore)
+const { getAll } = categoriasStore
+
+onMounted(async () => {
+  await getAll()
+})
 
 
 

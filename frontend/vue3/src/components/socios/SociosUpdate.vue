@@ -11,6 +11,13 @@
     <input type="text" v-model="socio.direccion" class="dato">
     <label>Email</label>
     <input type="email" v-model="socio.email" class="dato">
+    <label>Estado</label>
+    <select v-model="socio.estado" class="dato">
+      <option value="Pendiente">Pendiente</option>
+      <option value="Activo">Activo</option>
+      <option value="Moroso">Moroso</option>
+    </select> 
+  
   </div>
       <button type="submit" class="modificar">Modificar</button>
     </form>
@@ -33,7 +40,7 @@ onMounted(async () => {
   const id = route.params.id
   console.log('ID del socio a editar:', id)
 const encontrada=socios.value.find(socio => socio.id == parseInt(id as string))
-socio.value =  encontrada ?? { nombre: '' , direccion: '', telefono: '', email: '' }
+socio.value =  encontrada ?? { nombre: '' , direccion: '', telefono: '', email: '', estado: 'Pendiente' }
 })
 
 const editar = async () => {

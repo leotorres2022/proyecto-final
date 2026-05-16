@@ -24,7 +24,7 @@ const { socio: socio,socios: socios} = toRefs(UseSociosStore())
 onMounted(async () => {
 const id = route.params.id
 const encontrada= socios.value.find(socio =>socio.id == parseInt(id as string))
-socio.value =  encontrada ?? { nombre: '' , direccion: '', telefono: '', email: '' }
+socio.value =  encontrada ?? { nombre: '' , direccion: '', telefono: '', email: '' ,estado: 'Pendiente' }
 if (!socio.value) {
     console.error('socio no encontrado')
   }

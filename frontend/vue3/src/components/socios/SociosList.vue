@@ -1,5 +1,5 @@
 <template>
-    <h1 class="titulo">Socios Activos</h1>
+    <h1 class="titulo">Listado de socios</h1>
   <div class="crear-container">
 
 </div>
@@ -11,6 +11,7 @@
         <th>direccion</th>
         <th>telefono</th>
         <th>email</th>
+        <th>estado</th>
         <th v-if="userStore.modo === 'admin'">acciones</th>
       </tr>
     </thead>
@@ -21,6 +22,10 @@
         <td>{{ socio.direccion }}</td>
         <td>{{ socio.telefono }}</td>
         <td>{{ socio.email }}</td>
+ <td :class="getClaseEstado(socio.estado)">
+  {{ socio.estado }}
+</td>
+        
         <td v-if="userStore.modo === 'admin'">
           <router-link :to="{name:'socios_update',params:{id:socio.id}}">
             <i class="pi pi-pencil" style="font-size: 1.5rem" ></i></router-link>
@@ -52,6 +57,15 @@ async function eliminar(id: number) {
     await getAll()
   }
 }
+
+const getClaseEstado = (estado: string) => {
+  if (!estado) return '';
+  const e = estado.toString();
+  if (e === 'Activo') return 'texto-verde';
+  if (e === 'Moroso') return 'texto-rojo';
+  if (e === 'Pendiente') return 'texto-amarillo';
+  return '';
+};
 </script>
 
 <style scoped>
@@ -106,5 +120,14 @@ td i:hover {
 {
   cursor: pointer;
   color: #e5f41b;
+}
+.texto-verde {
+  color: #28a745 !important;
+}
+.texto-rojo {
+  color: #dc3545 !important;
+}
+.texto-amarillo {
+  color: #ffc107 !important;
 }
 </style>
