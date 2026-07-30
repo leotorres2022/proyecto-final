@@ -1,10 +1,12 @@
 # torneos/urls.py
 from django.urls import path
 from .views import (
-    DivisionListCreateView, 
-    DivisionRetrieveUpdateDestroyView, 
+    DivisionListCreateView,
+    DivisionRetrieveUpdateDestroyView,
     TablaPosicionesView,
-    PartidosPorDivisionListView
+    PartidosPorDivisionListView,
+    EquipoListView,
+    PartidoCreateView,
 )
 
 urlpatterns = [
@@ -12,4 +14,6 @@ urlpatterns = [
     path('division/<int:pk>/', DivisionRetrieveUpdateDestroyView.as_view(), name='division-detail'),
     path('division/<int:division_id>/tabla/', TablaPosicionesView.as_view(), name='tabla-posiciones'),
     path('division/<int:division_id>/partidos/', PartidosPorDivisionListView.as_view(), name='partidos-division'),
+    path('equipos/', EquipoListView.as_view(), name='equipo-list'),
+    path('partidos/', PartidoCreateView.as_view(), name='partido-create'),
 ]

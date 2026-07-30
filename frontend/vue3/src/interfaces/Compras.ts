@@ -1,5 +1,4 @@
 import type { Talles} from "./Talles";
-import type { Categorias } from "./Categorias";
 import type { Socios } from "./Socios";
 
 export interface Compras{
@@ -8,6 +7,7 @@ descripcion: string;
 precio: number;
 cantidad: number;
 talle?:Talles;
-categoria?: Categorias;
+categoria?: string;
 socio?:Socios;
+estado?: string; // Nuevo campo para el estado de la compra
 }

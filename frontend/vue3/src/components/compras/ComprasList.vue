@@ -10,6 +10,7 @@
         <th>Talle</th>
         <th>Categoria</th>
         <th>Socio</th>
+        <th>Estado</th>
         <th v-if="userStore.modo === 'admin'" >Acciones</th>
       </tr>
     </thead>
@@ -29,10 +30,9 @@
   <!-- Cambiamos .socio?.nombre por .socio_detalle -->
   <td>{{ compra.socio || 'Sin nombre' }}</td>
 
-  <!-- Resto de tus acciones (pencil, eye, trash) -->
-  <td v-if="userStore.modo === 'admin'">
-     <!-- Tus botones aquí... -->
-  </td>
+   <td >
+  {{ compra.estado }}
+</td>
 </tr>
     </tbody>
   </table>
@@ -69,6 +69,15 @@ async function eliminar(id: number) {
     await getAll()
   }
 }
+
+const getClaseEstado = (estado: string) => {
+  if (!estado) return '';
+  const e = estado.toString();
+  if (e === 'pendiente') return 'texto-amarillo';
+  if (e === 'finalizada') return 'texto-verde';
+  if (e === 'cancelada') return 'texto-rojo';
+  return '';
+};
 
 
 </script>
@@ -130,5 +139,14 @@ td ul {
 {
   cursor: pointer;
   color: #e5f41b;
+}
+.texto-verde {
+  color: #28a745 !important;
+}
+.texto-rojo {
+  color: #dc3545 !important;
+}
+.texto-amarillo {
+  color: #ffc107 !important;
 }
 </style>

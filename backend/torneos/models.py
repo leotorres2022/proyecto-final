@@ -9,6 +9,7 @@ class Division(models.Model):
 class Equipo(models.Model):
     nombre = models.CharField(max_length=100)
     division = models.ForeignKey(Division, on_delete=models.CASCADE)
+    escudo = models.ImageField(upload_to='escudos/', blank=True, null=True)
     
     def __str__(self):
         return self.nombre

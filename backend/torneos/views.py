@@ -1,8 +1,8 @@
-from rest_framework import generics
+from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .models import Division, Equipo, Partido
-from .serializers import DivisionSerializer, PartidoSerializer # Asegurate de tener estos serializers
+from .serializers import DivisionSerializer, PartidoSerializer
 from rest_framework.decorators import api_view
 
 
@@ -31,6 +31,35 @@ class DivisionRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Division.objects.all()
     serializer_class = DivisionSerializer
 
+
+class EquipoListView(generics.ListAPIView):
+    queryset = Equipo.objects.all()
+    serializer_class = None
+
+    def get(self, request, *args, **kwargs):
+        equipos = []
+        for equipo in Equipo.objects.all():
+            escudo_url = None
+            if equipo.escudo:
+                if hasattr(equipo.escudo, 'url'):
+                    escudo_url = request.build_absolute_uri(equipo.escudo.url)
+                else:
+                    escudo_url = str(equipo.escudo)
+                    if not escudo_url.startswith('http'):
+                        escudo_url = request.build_absolute_uri('/media/' + escudo_url.lstrip('/'))
+            equipos.append({
+                'id': equipo.id,
+                'nombre': equipo.nombre,
+                'division': equipo.division_id,
+                'escudo': escudo_url,
+            })
+        return Response(equipos)
+
+
+class PartidoCreateView(generics.CreateAPIView):
+    queryset = Partido.objects.all()
+    serializer_class = PartidoSerializer
+
 # 3. TU VISTA DE TABLA DE POSICIONES (Optimizada)
 class TablaPosicionesView(APIView):
     def get(self, request, division_id):
@@ -40,8 +69,18 @@ class TablaPosicionesView(APIView):
         tabla = []
 
         for equipo in equipos:
+            escudo_url = None
+            if equipo.escudo:
+                if hasattr(equipo.escudo, 'url'):
+                    escudo_url = request.build_absolute_uri(equipo.escudo.url)
+                else:
+                    escudo_url = str(equipo.escudo)
+                    if not escudo_url.startswith('http'):
+                        escudo_url = request.build_absolute_uri('/media/' + escudo_url.lstrip('/'))
+
             stats = {
                 'equipo': equipo.nombre,
+                'escudo': escudo_url,
                 'pj': 0, 'pg': 0, 'pe': 0, 'pp': 0,
                 'gf': 0, 'gc': 0, 'dg': 0, 'pts': 0
             }

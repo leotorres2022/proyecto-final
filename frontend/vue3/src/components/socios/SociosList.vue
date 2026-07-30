@@ -10,43 +10,64 @@
         <th>nombre</th>
         <th>direccion</th>
         <th>telefono</th>
+        <th>DNI</th>
+        <th>División</th>
         <th>email</th>
         <th>estado</th>
-        <th v-if="userStore.modo === 'admin'">acciones</th>
-      </tr>
+        </tr>
     </thead>
     <tbody>
-      <tr v-for="socio in socios" :key="socio.id">
+      <tr v-for="socio in visibleSocios" :key="socio.id">
         <td>{{ socio.id }}</td>
         <td>{{ socio.nombre }}</td>
         <td>{{ socio.direccion }}</td>
         <td>{{ socio.telefono }}</td>
+        <td>{{ socio.dni }}</td>
+        <td>{{ socio.division }}</td>
         <td>{{ socio.email }}</td>
  <td :class="getClaseEstado(socio.estado)">
   {{ socio.estado }}
 </td>
         
-        <td v-if="userStore.modo === 'admin'">
-          <router-link :to="{name:'socios_update',params:{id:socio.id}}">
-            <i class="pi pi-pencil" style="font-size: 1.5rem" ></i></router-link>
-          <router-link :to="{name:'socios_show',params:{id:socio.id}}">
-            <i class="pi pi-eye" style="font-size: 1.5rem"></i></router-link>
-          <button @click.prevent="eliminar(socio.id as number)">
-            <i class="pi pi-trash" style="font-size: 1.5rem"></i></button>
-        </td>
+   <td v-if="userAuthStore.isAuthenticated && (userAuthStore.user?.groups?.includes('admin') || userAuthStore.user?.is_superuser)">
+  
+  <router-link :to="{ name: 'socios_update', params: { id: socio.id } }">
+    <i class="pi pi-pencil" style="font-size: 1.5rem"></i>
+  </router-link>
+
+  <router-link :to="{ name: 'socios_show', params: { id: socio.id } }">
+    <i class="pi pi-eye" style="font-size: 1.5rem"></i>
+  </router-link>
+
+  <button @click.prevent="eliminar(socio.id as number)">
+    <i class="pi pi-trash" style="font-size: 1.5rem"></i>
+  </button>
+
+</td>
       </tr>
     </tbody>
   </table>
 </template>
 
 <script setup lang="ts">
-import { onMounted, toRefs } from 'vue'
+import { computed, onMounted, toRefs } from 'vue'
 import useSociosStore from '../../stores/socios'
-const { socios } = toRefs(useSociosStore())
-const { getAll, destroy } = useSociosStore()
-import useUserStore from '@/stores/user'
-const userStore = useUserStore()
+import { useAuthStore } from '@/stores/auth';
+const sociosStore = useSociosStore()
+const { socios } = toRefs(sociosStore)
+const { getAll, destroy } = sociosStore
+const userAuthStore = useAuthStore()
 
+const visibleSocios = computed(() => {
+  const username = userAuthStore.user?.username
+  if (userAuthStore.isAuthenticated && username) {
+    const socioEncontrado = socios.value.find((s) => s.dni === username)
+    if (socioEncontrado) {
+      return [socioEncontrado]
+    }
+  }
+  return socios.value
+})
 
 onMounted(async () => {
   await getAll()

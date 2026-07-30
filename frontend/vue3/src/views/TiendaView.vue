@@ -3,11 +3,13 @@
   <router-link
      v-if="userStore.modo === 'admin'"   :to="{ name: 'configuraciones' }" class="config-link">
     <i class="pi pi-cog" style="font-size: 2rem"></i>
+
   </router-link>
 
 
   <!-- Lista de productos -->
   <div class="productos-grid">
+   
 
       <div
         v-for="(producto, index) in productos"
@@ -17,7 +19,7 @@
         <img :src="producto.imagen" :alt="producto.descripcion" />
         <p>{{ producto.descripcion }}</p>
         <p>${{ producto.precio.toLocaleString() }}</p>
-
+    
         <i
           class="pi pi-cart-plus"
           style="font-size: 2rem; cursor: pointer"
@@ -57,29 +59,38 @@ const productos = [
     imagen: new URL('@/assets/camiseta.jpg', import.meta.url).href,
     descripcion: 'Camiseta titular',
     precio: 15000,
+    categoria: 'Camisetas'
     },
   {
     imagen: new URL('@/assets/medias.jpg', import.meta.url).href,
     descripcion: 'Medias de fútbol',
     precio: 6000,
+    categoria: 'Medias Largas'
+   
+  
 
   },
   {
     imagen: new URL('@/assets/conjunto-entrenamiento.jpg', import.meta.url).href,
     descripcion: 'Conjunto de entrenamiento',
     precio: 30000,
+    categoria: 'Buso'       
 
   },
     {
     imagen: new URL('@/assets/conjunto-largo.jpeg', import.meta.url).href,
     descripcion: 'Conjunto largo',
-    precio: 60000,
+    precio: 60000,  
+    categoria: 'Pantalon Largo'
+
 
   },
   {
     imagen: new URL('@/assets/short.jpg', import.meta.url).href,
     descripcion: 'Short de fútbol',
     precio: 8000,
+    categoria: 'Short de Futbol'
+
 
   }
 

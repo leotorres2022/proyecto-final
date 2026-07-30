@@ -10,6 +10,8 @@ class Socio(models.Model):
 
     nombre = models.CharField(max_length=100)
     telefono = models.CharField(max_length=20)
+    dni = models.CharField(max_length=20, blank=True, default='')
+    division = models.CharField(max_length=50, blank=True, default='')
     direccion = models.TextField()
     email = models.EmailField(unique=True)
     

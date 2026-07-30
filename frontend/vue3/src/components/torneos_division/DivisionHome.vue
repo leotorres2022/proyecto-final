@@ -1,8 +1,7 @@
 <template>
-  <div class="flyer-container">
+  <div class="flyer-container" :style="backgroundStyle">
     <div class="flyer-card">
       
-      <!-- Encabezado Estilo Graffiti/Pincel -->
       <header class="flyer-header">
         <h1 class="text-impact">¡JUGAMOS <br> <span class="blue-text">DE VISITANTE!</span></h1>
         <div class="contra-label">
@@ -10,7 +9,6 @@
         </div>
       </header>
 
-      <!-- Escudo y Nombre del Rival -->
       <section class="rival-section">
         <div class="rival-box">
           <h2 v-if="!isEditing" class="rival-name">{{ rival }}</h2>
@@ -18,13 +16,12 @@
         </div>
       </section>
 
-      <!-- Horarios con Estilo de Pincelada -->
       <section class="schedule-flyer">
         <div class="schedule-header">
           <h3 class="schedule-title">
             <i class="pi pi-clock"></i> HORARIOS DE LOS PARTIDOS
           </h3>
-          <button @click="toggleEdit" class="btn-edit">
+          <button  v-if="userAuthStore.isAuthenticated && (userAuthStore.user?.groups?.includes('admin'))" @click="toggleEdit" class="btn-edit">
             <i class="pi" :class="isEditing ? 'pi-check' : 'pi-pencil'"></i>
             {{ isEditing ? 'Guardar' : 'Editar' }}
           </button>
@@ -32,9 +29,16 @@
         
         <div class="match-list">
           <div class="match-row" v-for="(h, index) in horarios" :key="index">
-            <input v-if="isEditing" v-model="h.cat" class="brush-bg cat-box edit-input" placeholder="Categoría" />
+            
+            <select v-if="isEditing" v-model="h.cat" class="brush-bg cat-box edit-select">
+              <option v-for="opcion in divisionesOpciones" :key="opcion.value" :value="opcion.value">
+                {{ opcion.label }}
+              </option>
+            </select>
             <div v-else class="brush-bg cat-box">{{ h.cat }}</div>
+            
             <div class="ball-icon">⚽</div>
+            
             <input v-if="isEditing" v-model="h.time" class="brush-bg time-box edit-input" placeholder="Hora" />
             <div v-else class="brush-bg time-box">{{ h.time }}</div>
           </div>
@@ -42,7 +46,6 @@
       </section>
 
      <footer class="flyer-footer">
-        <!-- Botón para ver tablas -->
         <div class="actions-container">
           <router-link :to="{ name: 'division_list' }" class="btn-action">
             VER TABLAS Y RESULTADOS
@@ -59,9 +62,22 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import fondoUrl from '@/assets/fondo_futbol.jpg';
+import { useAuthStore } from '@/stores/auth';
+
+const userAuthStore = useAuthStore();
 
 const isEditing = ref(false);
 const rival = ref('DEPORTIVO PATAGONES');
+
+// Listado de las divisiones que coinciden con tu backend en Django
+const divisionesOpciones = [
+  { value: '8va', label: '8va' },
+  { value: '7ma', label: '7ma' },
+  { value: '6ta', label: '6ta' },
+  { value: '5ta', label: '5ta' },
+  { value: '4ta', label: '4ta' },
+  
+];
 
 const horarios = ref([
   { cat: '8va', time: '11:00 hs' },

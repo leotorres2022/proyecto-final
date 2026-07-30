@@ -1,31 +1,39 @@
 <template>
   <div class="app-container">
-    <header><nav class="navbar">
-      <ul >
-        <li><router-link to="/">HOME</router-link></li>
-        <li><router-link :to="{name:'club'}">CLUB</router-link></li>
-        <li><router-link :to="{name:'tienda'}">TIENDA</router-link></li>
-        <li><router-link :to="{name:'galeria'}">GALERIA</router-link></li>
-        <li><router-link :to="{name:'socios_list'}">SOCIOS</router-link></li>
-        <li><router-link :to="{name:'compras_list'}">COMPRAS</router-link></li>
-        <li><router-link :to="{name:'division_home'}">DIVISIONES</router-link></li>
-        <li style="display: flex; align-items: center; justify-content: center;">
-  <i class="pi pi-user" style="font-size: 1.8rem; color: white; margin-right: 8px;"></i>
-  <select v-model="modoUsuario" style="font-size: 1rem; padding: 6px; border-radius: 6px;">
-  <option value="usuario">Usuario</option>
-  <option value="admin">Admin</option>
-</select>
-</li>
+   <header>
+    <nav class="navbar">
+  <ul>
+  <li v-for="link in visibleLinks" :key="link.name">
+    <router-link :to="link.to">
+      <template v-if="link.imagen">
+          <img :src="link.imagen" :alt="link.name" class="navbar-logo" />
+        </template>
 
-      </ul>
+        <template v-else-if="link.icon">
+          <i :class="link.icon" class="navbar-icon" :title="link.name"></i>
+        </template>
+
+        <template v-else>
+          {{ link.name }}
+        </template>
+    </router-link>
+  </li>
+
+  <li>
+  <a @click.prevent="manejarAccionUsuario" class="login-link" :title="authStore.isAuthenticated ? 'Logout' : 'Login'">
+    <i :class="['pi', authStore.isAuthenticated ? 'pi-sign-out' : 'pi-user', 'icon-user'] "></i>
+  </a>
+</li>
+</ul>
     </nav>
+
+
 
     <div v-if="$route.path === '/'">
     <h1>¿Todavia no sos socio?</h1>
     <button><router-link :to="{name:'socios_create'}">ASOCIATE </router-link></button>
       </div>
     </header>
-
 
     <main class="main-content">
       <!-- Solo muestra las imágenes en Home -->
@@ -54,17 +62,17 @@
 
     <div class="footer-section">
       <h4>Accesos Rápidos</h4>
-      <ul>
-          <li><router-link to="/">HOME</router-link></li>
-        <li><router-link :to="{name:'club'}">CLUB</router-link></li>
-        <li><router-link :to="{name:'tienda'}">TIENDA</router-link></li>
-        <li><router-link :to="{name:'galeria'}">GALERIA</router-link></li>
-        <li><router-link :to="{name:'socios_list'}">SOCIOS</router-link></li>
-        <li><router-link :to="{name:'compras_list'}">COMPRAS</router-link></li>
-     
+        <ul>
+  <li v-for="link in visibleLinks" :key="link.name">
+    <router-link :to="link.to">{{ link.name }}</router-link>
+  </li>
 
-          
-      </ul>
+  <li>
+  <a @click.prevent="manejarAccionUsuario" class="login-link" :title="authStore.isAuthenticated ? 'Logout' : 'Login'">
+    <i :class="['pi', authStore.isAuthenticated ? 'pi-sign-out' : 'pi-user', 'icon-user'] "></i>
+  </a>
+</li>
+</ul>
     </div>
 
     <div class="footer-section">
@@ -91,15 +99,54 @@
 import 'primeicons/primeicons.css'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import useUserStore from '@/stores/user'
+import { useAuthStore } from '@/stores/auth';
 import { computed } from 'vue'
+import useCarritoStore  from '@/stores/carrito';
+const carritoStore = useCarritoStore()
 const router = useRouter()
-const userStore = useUserStore()
+const authStore = useAuthStore()
+const totalLinks = [
+  { 
+    name: 'HOME', 
+    to: '/', 
+    groups: ['public'], 
+    imagen: new URL('@/assets/galeria/formando_futuro.png', import.meta.url).href,
+  },
+  { name: 'CLUB', to: { name: 'club' }, groups: ['public'] },
+  { name: 'TIENDA', to: { name: 'tienda' }, groups: ['socio'] },
+  { name: 'GALERIA', to: { name: 'galeria' }, groups: ['public'] },
+  { name: 'SOCIOS', to: { name: 'socios_list' }, groups: ['admin', 'profe', 'socio'] },
+  { name: 'COMPRAS', to: { name: 'compras_list' }, groups: ['admin'] },
+  { name: 'DIVISIONES', to: { name: 'division_home' }, groups: ['public'] },
+  { name: 'CARRITO', to: { name: 'carrito' }, groups: ['socio'], icon: 'pi pi-shopping-cart' },
+];
 
-const modoUsuario = computed({
-  get: () => userStore.modo,
-  set: (val: string) => userStore.setModo(val)
-})
+const visibleLinks = computed(() => {
+  // Buscamos 'groups' únicamente dentro de 'user'. 
+  // Si 'user' no existe o está vacío, le asignamos un arreglo vacío []
+  const userGroups: string[] = authStore.user?.groups || [];
+
+  return totalLinks.filter(link => {
+    // 1. Si la ruta incluye 'public', la ve cualquiera
+    if (link.groups.includes('public')) {
+      return true;
+    }
+    
+    // 2. Comparamos los grupos requeridos con los grupos del usuario logueado
+    return link.groups.some((group: string) => userGroups.includes(group));
+  });
+});
+const manejarAccionUsuario = () => {
+  if (authStore.isAuthenticated) {
+    // Si ya está logueado, podés hacer que cierre sesión
+    authStore.logout(); // Asegurate de que tu store tenga la función logout
+    carritoStore.limpiarCarrito(); // Limpia el carrito al cerrar sesión
+    router.push({ name: 'login' });
+  } else {
+    // Si no está logueado, va directo a la pantalla de login
+    router.push({ name: 'login' });
+  }
+};
 
 
 </script>
@@ -153,6 +200,25 @@ html, body {
   background-color: #1aae4d; /* Verde más claro en hover */
   letter-spacing: 0.5px;     /* Separación suave de letras */
   text-decoration: underline;
+}
+.navbar-logo {
+  height: 40px;          
+  width: auto;
+  object-fit: contain;
+  display: block;        
+}
+
+
+.navbar a:has(.navbar-logo):hover {
+  background-color: transparent; 
+  text-decoration: none;         
+  padding: 0px 4px;              
+}
+
+.navbar a:has(.navbar-logo):hover .navbar-logo {
+  opacity: 0.8;
+  transform: scale(1.02);       
+  transition: all 0.2s ease;
 }
 
 /* Estilos para el main */

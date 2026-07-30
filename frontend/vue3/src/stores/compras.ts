@@ -4,7 +4,6 @@ import { ref } from "vue"
 import ApiService from "@/services/ApiService"
 import type  {Socios}   from '@/interfaces/Socios'
 import type {Talles} from '@/interfaces/Talles'
-import type {Categorias} from '@/interfaces/Categorias'
 import type {Compras} from '@/interfaces/Compras'
 
 const useComprasStore = defineStore('compras', () => {
@@ -15,8 +14,9 @@ const useComprasStore = defineStore('compras', () => {
     precio: 0,
     cantidad: 0,
     talle: {} as Talles,
-    categoria: {} as Categorias,
-    socio: {} as Socios
+    categoria: undefined,
+    socio: {} as Socios,
+    estado: 'pendiente' // Valor por defecto para el estado
   })
 const url = 'api/compras'
   async function getAll()
@@ -53,9 +53,10 @@ const url = 'api/compras'
           }
   }
 
-function seleccionarProducto(producto: { descripcion: string; precio: number }) {
+function seleccionarProducto(producto: { descripcion: string; precio: number; categoria: string }) {
   compra.value.descripcion = producto.descripcion
   compra.value.precio = producto.precio
+  compra.value.categoria = producto.categoria as any
 }
 
 

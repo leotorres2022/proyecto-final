@@ -2,8 +2,10 @@ django
 psycopg2-binary
 django-rest-auth
 djangorestframework
-djangorestframework-jwt
+djangorestframework-simplejwt
 django-cors-headers
 Pillow
 dj-database-url
 psycopg2-binary
+requests==2.31.0
+

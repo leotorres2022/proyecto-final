@@ -5,6 +5,10 @@
       <div >
         <label for="" >Nombre de socio</label>
         <input type="text" name="create" v-model="socio.nombre">
+        <label for="" >DNI</label>
+        <input type="text" name="create" v-model="socio.dni" required>
+        <label for="" >División</label>
+        <input type="text" name="create" v-model="socio.division">
         <label for="" >telefono</label>
         <input type="text" name="create" v-model="socio.telefono">
         <label for="" >Direccion</label>
@@ -28,9 +32,12 @@ const {create} = UseSociosStore()
 const limpiarFormulario = () => {
   socio.value = {
     nombre: '',
+    dni: '',
+    division: '',
     telefono: '',
     direccion: '',
-    email: ''
+    email: '',
+    estado: 'Pendiente'
   }
 }
 onMounted(() => {
@@ -42,6 +49,9 @@ const crear = async ()=> {
   }
   else if (!socio.value.telefono) {
     alert('El telefono del socio es obligatorio')
+  }
+  else if (!socio.value.dni) {
+    alert('El DNI del socio es obligatorio')
   }
   else if (!socio.value.direccion) {
     alert('La direccion del socio es obligatoria')

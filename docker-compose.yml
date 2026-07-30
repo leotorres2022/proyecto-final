@@ -1,6 +1,6 @@
 services:
   backend:
-    image: videobackend:0.1
+    image: videobackend:0.2
     build: 
       context: ./config/django-image
     volumes:
@@ -9,14 +9,21 @@ services:
       - 8000:8000
     depends_on:
       - db
+    env_file:
+      - ./backend/.env
     environment:
       - DATABASE_URL=postgresql://user:password@db:5432/mydb
+      - DJANGO_SUPERUSER_USERNAME=admin
+      - DJANGO_SUPERUSER_PASSWORD=admin1234
+      - DJANGO_SUPERUSER_EMAIL=admin@example.com
+    command: sh -c "python backend/manage.py migrate && python backend/manage.py createsuperuser --noinput || true && python backend/manage.py runserver 0.0.0.0:8000"    
   db:
     image: postgres:15
     environment:
       - POSTGRES_DB=mydb
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password
+      
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:

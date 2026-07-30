@@ -4,7 +4,10 @@
   <p><i class="pi pi-user" style="margin-right: 8px"></i><strong>Nombre:</strong> <span class="dato">{{ socio.nombre }}</span></p>
   <p><i class="pi pi-home" style="margin-right: 8px"></i><strong>Dirección:</strong> <span class="dato">{{ socio.direccion }}</span></p>
   <p><i class="pi pi-phone" style="margin-right: 8px"></i><strong>Teléfono:</strong> <span class="dato">{{ socio.telefono }}</span></p>
+  <p><i class="pi pi-id-card" style="margin-right: 8px"></i><strong>DNI:</strong> <span class="dato">{{ socio.dni }}</span></p>
+  <p><i class="pi pi-users" style="margin-right: 8px"></i><strong>División:</strong> <span class="dato">{{ socio.division }}</span></p>
   <p><i class="pi pi-envelope" style="margin-right: 8px"></i><strong>Email:</strong> <span class="dato">{{ socio.email }}</span></p>
+  <p><i class="pi pi-flag" style="margin-right: 8px"></i><strong>Estado:</strong> <span class="dato">{{ socio.estado }}</span></p>
   <p><i class="pi pi-hash" style="margin-right: 8px"></i><strong>ID:</strong> <span class="dato">{{ socio.id }}</span></p>
 </div>
 
@@ -15,20 +18,23 @@
 
 </template>
 <script setup lang="ts">
-import { toRefs } from 'vue';
-import  UseSociosStore from '../../stores/socios'
+import { toRefs, onMounted } from 'vue';
+import UseSociosStore from '../../stores/socios'
 import { useRoute} from 'vue-router';
-import { onMounted } from 'vue';
 const route = useRoute()
-const { socio: socio,socios: socios} = toRefs(UseSociosStore())
+const store = UseSociosStore()
+const { socio, socios } = toRefs(store)
 onMounted(async () => {
-const id = route.params.id
-const encontrada= socios.value.find(socio =>socio.id == parseInt(id as string))
-socio.value =  encontrada ?? { nombre: '' , direccion: '', telefono: '', email: '' ,estado: 'Pendiente' }
-if (!socio.value) {
-    console.error('socio no encontrado')
+  if (socios.value.length === 0) {
+    await store.getAll()
   }
 
+  const id = route.params.id
+  const encontrada = socios.value.find((item) => item.id === parseInt(id as string))
+  socio.value = encontrada ?? { nombre: '' , dni: '', division: '', direccion: '', telefono: '', email: '' ,estado: 'Pendiente' }
+  if (!encontrada) {
+    console.error('socio no encontrado')
+  }
 }
 )
 

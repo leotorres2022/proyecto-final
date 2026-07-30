@@ -13,8 +13,24 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 from pathlib import Path
 import os
 
+
+def load_dotenv(dotenv_path):
+    if not dotenv_path.exists():
+        return
+    for line in dotenv_path.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith('#') or '=' not in line:
+            continue
+        key, value = line.split('=', 1)
+        key = key.strip()
+        value = value.strip().strip('"\'"')
+        if key and key not in os.environ:
+            os.environ[key] = value
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+DOTENV_PATH = BASE_DIR / '.env'
+load_dotenv(DOTENV_PATH)
 
 # Media files (Uploaded files)
 MEDIA_URL = '/media/'
@@ -42,19 +58,33 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
     'socios',
     'talles',
     'categorias',
     'compras',
     'torneos',
-    
+    'authentication',
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    'BLACKLIST_AFTER_ROTATION': True,
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+}   
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -97,12 +127,23 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 import dj_database_url
 import os
 
-DATABASES = {
-    'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL'),
-        conn_max_age=600
-    )
-}
+# Prefer DATABASE_URL if provided (for Docker/production). Otherwise use a local sqlite file for
+# development so commands like `migrate` and `createsuperuser` work without extra env vars.
+DATABASE_URL = os.environ.get('DATABASE_URL')
+if DATABASE_URL:
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600
+        )
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 # CORS settings
 CORS_ALLOWED_ORIGINS = [

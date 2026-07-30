@@ -9,10 +9,14 @@ const useSociosStore = defineStore('socios', () => {
   const socio= ref<Socios>({
     id: 0,
     nombre: '',
+    dni: '',
+    division: '',
     direccion: '',
     email: '',
-    telefono: ''
+    telefono: '',
+    estado: 'Activo'
   })
+  // Ensure required default fields exist (estado included above)
 const url = 'api/socios/'
   async function getAll()
   {
@@ -23,6 +27,15 @@ const url = 'api/socios/'
       console.error('Error al obtener socios:', error)
     }
   }
+
+  async function findByTelefono(telefono: string) {
+    if (!telefono) return undefined
+    if (socios.value.length === 0) {
+      await getAll()
+    }
+    return socios.value.find((socio) => socio.telefono === telefono)
+  }
+
   async function create(socio: Socios) {
     const response = await ApiService.create(url, socio)
     if (response) {
@@ -46,7 +59,7 @@ const url = 'api/socios/'
       return data
           }
   }
-return { socios,socio , getAll, destroy, create, update }
+return { socios, socio, getAll, findByTelefono, destroy, create, update }
 
 })
 

@@ -7,6 +7,10 @@
     <input type="text" v-model="socio.nombre" class="dato">
     <label>Teléfono</label>
     <input type="text" v-model="socio.telefono" class="dato">
+    <label>DNI</label>
+    <input type="text" v-model="socio.dni" class="dato" required>
+    <label>División</label>
+    <input type="text" v-model="socio.division" class="dato">
     <label>Dirección</label>
     <input type="text" v-model="socio.direccion" class="dato">
     <label>Email</label>
@@ -40,18 +44,22 @@ onMounted(async () => {
   const id = route.params.id
   console.log('ID del socio a editar:', id)
 const encontrada=socios.value.find(socio => socio.id == parseInt(id as string))
-socio.value =  encontrada ?? { nombre: '' , direccion: '', telefono: '', email: '', estado: 'Pendiente' }
+socio.value = encontrada ?? { nombre: '' , dni: '', division: '', direccion: '', telefono: '', email: '', estado: 'Pendiente' }
 })
 
 const editar = async () => {
   if (!socio.value.nombre) {
     alert('El nombre del socio es obligatorio');
+  } else if (!socio.value.dni) {
+    alert('El DNI del socio es obligatorio');
   } else {
     const response = await update(socio.value);
     socio.value.nombre= ''
     socio.value.telefono= ''
     socio.value.direccion= ''
     socio.value.email= ''
+    socio.value.dni= ''
+    socio.value.division= ''
     alert('Socio actualizado correctamente');
     console.log(response);
   }

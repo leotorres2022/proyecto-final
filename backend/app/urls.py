@@ -15,6 +15,8 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+from django.conf import settings
+from django.conf.urls.static import static
 from django.urls import path, include
 from rest_framework import routers
 from socios.views import SocioViewSet
@@ -39,4 +41,11 @@ urlpatterns = [
     # Rutas manuales de TORNEOS (Donde están divisiones, tabla y partidos)
     # IMPORTANTE: Esto hará que las rutas empiecen con 'api/torneos/'
     path('api/torneos/', include('torneos.urls')),
+
+    # Rutas de autenticación (login, refresh, verify)
+    path('api/auth/', include('authentication.urls')),    
+        
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

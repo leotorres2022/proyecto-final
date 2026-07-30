@@ -2,15 +2,21 @@
 import { onMounted, ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import useDivisionStore from "@/stores/division"; 
+import CargarPartido from '@/components/torneos_division/CargarPartido.vue';
+
 
 // Acceso al store de Pinia
 const store = useDivisionStore();
 const { divisions, tablaPosiciones, partidos } = storeToRefs(store);
+import { useAuthStore } from '@/stores/auth';
+const userAuthStore = useAuthStore();
 
 // --- ESTADO LOCAL NUEVO ---
 const divisionSeleccionada = ref<number | null>(null);
-const fechaSeleccionada = ref<number | null>(3); //hasta la fecha 3 que es la que cargue en el backend
+const fechaSeleccionada = ref<number | null>(3); 
 const cargando = ref(false);
+const mostrarFormularioCarga = ref(false);
+
 
 onMounted(async () => {
   try {
@@ -23,8 +29,31 @@ onMounted(async () => {
 // Función para cargar partidos 
 const cargarPartidos = async () => {
   if (divisionSeleccionada.value) {
-    // Pasamos el ID de división y la fecha seleccionada al store
-    await store.getPartidos(divisionSeleccionada.value, fechaSeleccionada.value);
+    cargando.value = true;
+    try {
+      await store.getPartidos(divisionSeleccionada.value, fechaSeleccionada.value);
+    } finally {
+      cargando.value = false;
+    }
+  }
+};
+
+const abrirFormularioCarga = async () => {
+  if (!divisionSeleccionada.value) {
+    return;
+  }
+
+  const siguienteFecha = (fechaSeleccionada.value ?? 0) + 1;
+  fechaSeleccionada.value = siguienteFecha;
+  mostrarFormularioCarga.value = true;
+  await cargarPartidos();
+};
+
+const handleGuardadoPartido = async () => {
+  mostrarFormularioCarga.value = false;
+  if (divisionSeleccionada.value) {
+    await cargarPartidos();
+    await store.getTabla(divisionSeleccionada.value);
   }
 };
 
@@ -69,11 +98,23 @@ watch(divisionSeleccionada, async (nuevoId) => {
         >
           <option :value="null" disabled>-- Seleccione una división para visualizar la información --</option>
           <option v-for="d in divisions" :key="d.id" :value="d.id">
-            {{ d.nombre }}
+            {{ d.nombre }} 
           </option>
         </select>
-        
+
+        <button  v-if="userAuthStore.isAuthenticated && (userAuthStore.user?.groups?.includes('admin'))"   type="button" class="btn-cargar-partido" @click="abrirFormularioCarga">
+          <i class="pi pi-plus"></i>
+          <span>{{ mostrarFormularioCarga ? 'Actualizar' : 'Cargar Partido' }}</span>
+        </button>
       </div>
+    </div>
+
+    <div v-if="mostrarFormularioCarga" class="card formulario-card">
+      <CargarPartido
+        :division-id="divisionSeleccionada"
+        :fecha-inicial="fechaSeleccionada"
+        @guardado="handleGuardadoPartido"
+      />
     </div>
 
     <div v-if="cargando" class="status-box">
@@ -104,9 +145,22 @@ watch(divisionSeleccionada, async (nuevoId) => {
             <tbody>
               <tr v-for="(item, index) in tablaPosiciones" :key="item.equipo">
                 <td class="pos-cell">{{ index + 1 }}</td>
-                <td class="text-left team-bold">{{ item.equipo }}</td>
+                <td class="text-left team-bold">
+                  <span class="team-cell">
+                    <img
+                      v-if="item.escudo"
+                      :src="item.escudo"
+                      :alt="item.equipo"
+                      class="team-logo"
+                      @error="($event.target as HTMLImageElement).style.display = 'none'"
+                    />
+                    <span v-else class="team-logo-placeholder">⚽</span>
+                    <span>{{ item.equipo }}</span>
+                  </span>
+                </td>
                 <td>{{ item.pj }}</td>
                 <td>{{ item.pg }}</td>
+
                 <td>{{ item.pe }}</td>
                 <td>{{ item.pp }}</td>
                 <td>{{ item.gf }}</td>
@@ -138,12 +192,12 @@ watch(divisionSeleccionada, async (nuevoId) => {
   </div>
   
   <div v-for="p in partidos" :key="p.id" class="match-item">
-    <div class="match-main">
-      <span class="team local">{{ p.nombre_local }}</span>
-      <div class="score-pill" :class="{ 'not-played': !p.jugado }">
+    <div class="fixture-row">
+      <div class="fixture-team">{{ p.nombre_local }}</div>
+      <div class="fixture-score" :class="{ 'not-played': !p.jugado }">
         {{ p.jugado ? p.goles_local : '-' }} : {{ p.jugado ? p.goles_visitante : '-' }}
       </div>
-      <span class="team visitante">{{ p.nombre_visitante }}</span>
+      <div class="fixture-team fixture-team-right">{{ p.nombre_visitante }}</div>
     </div>
     <div class="match-date">Fecha {{ p.fecha }}</div>
   </div>
@@ -192,11 +246,23 @@ watch(divisionSeleccionada, async (nuevoId) => {
 
 /* Selector */
 .selector-card { margin-bottom: 25px; }
-.selector-content { display: flex; align-items: center; gap: 20px; }
+.selector-content { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
 .custom-select {
   flex-grow: 1; padding: 12px; border-radius: 8px; 
   border: 1px solid #cbd5e1; font-size: 1rem; color: #1e293b;
 }
+.btn-cargar-partido {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: #007BFF; color: white; border: none; border-radius: 8px;
+  padding: 12px 16px; font-weight: 600; cursor: pointer;
+  transition: background 0.2s ease;
+}
+.btn-cargar-partido:hover { background: #005ecb; }
+.btn-secondary {
+  background: #475569;
+}
+.btn-secondary:hover { background: #334155; }
+.formulario-card { margin-bottom: 25px; }
 
 /* Layout Dashboard */
 .dashboard-layout {
@@ -230,6 +296,31 @@ watch(divisionSeleccionada, async (nuevoId) => {
 .tabla-posiciones td { padding: 18px 10px; text-align: center; border-bottom: 1px solid #f1f5f9; }
 .text-left { text-align: left !important; }
 .team-bold { font-weight: 600; color: #0f172a; }
+.team-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 28px;
+}
+.team-logo {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+  flex-shrink: 0;
+  display: block;
+}
+.team-logo-placeholder {
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #e2e8f0;
+  color: #64748b;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
 .pos-cell { color: #94a3b8; font-weight: 700; }
 .pts-col { background: #f1f5f9; }
 .pts-cell { font-weight: 800; color: #007BFF; font-size: 1.1rem; background: #eff6ff; }
@@ -238,17 +329,36 @@ watch(divisionSeleccionada, async (nuevoId) => {
 
 /* Fixture de Partidos */
 .match-item {
-  border-bottom: 1px solid #f1f5f9; padding: 15px 0;
+  border-bottom: 1px solid #f1f5f9; padding: 12px 0;
 }
-.match-main { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-.team { flex: 1; font-weight: 500; font-size: 0.9rem; }
-.visitante { text-align: right; }
-.score-pill {
-  background: #1e293b; color: white; padding: 4px 14px;
-  border-radius: 6px; font-weight: 700; margin: 0 15px; min-width: 50px; text-align: center;
+.fixture-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 10px;
+}
+.fixture-team {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #0f172a;
+}
+.fixture-team-right {
+  text-align: right;
+}
+.fixture-score {
+  background: #1e293b; color: white; padding: 4px 12px;
+  border-radius: 999px; font-weight: 700; min-width: 64px; text-align: center;
+  justify-self: center;
 }
 .not-played { background: #e2e8f0; color: #94a3b8; }
-.match-date { text-align: center; font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; }
+.match-date {
+  text-align: center;
+  font-size: 0.72rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 4px;
+}
 
 /* Estados */
 .status-box { text-align: center; padding: 80px; color: #64748b; }

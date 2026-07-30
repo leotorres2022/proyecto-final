@@ -2,12 +2,10 @@
   <div>
     <form @submit.prevent="crear">
       <div >
-       <label>Nombre de Socio</label>
-          <select v-model="compra.socio" required>
-         <option v-for="socio in socios" :key="socio.id" :value="socio">
-         {{ socio.nombre }}
-         </option>
-        </select>
+      <label>Nombre de Socio</label>
+       <p class="socio-logueado">
+            {{ compra.socio?.nombre || 'Buscando perfil de socio...' }}
+        </p>
         <label for="" >Descripcion del Articulo</label>
         <p >{{ compra.descripcion }}</p>
         <label for="" >Precio</label>
@@ -21,11 +19,7 @@
         </option>
        </select>
         <label for="" >Categoria</label>
-      <select v-model="compra.categoria" required>
-        <option v-for="categoria in categorias" :key="categoria.id" :value="categoria">
-          {{ categoria.nombre }}
-        </option>
-      </select> 
+       <p>{{ compra.categoria }}</p>
        </div>
       <button type="submit">Crear</button>
     </form>
@@ -42,17 +36,26 @@ import UseComprasStore from '../../stores/compras'
 import UseTallesStore from '../../stores/talles'
 import UseSociosStore from '../../stores/socios'
 import  UseCategoriasStore from '../../stores/categorias'
+import UseCarritoStore from '../../stores/carrito'
+import { useAuthStore } from '@/stores/auth'
+import { computed } from 'vue'
+const authStore = useAuthStore()
+const socioLogueado = computed(() => {
+  return authStore.user; 
+})
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 const limpiar = () => {
   compra.value.cantidad = 1
   compra.value.talle = undefined
-  compra.value.categoria = undefined
-  compra.value.socio = undefined
-}
+ }
 
 const tallesStore = UseTallesStore()
 const sociosStore = UseSociosStore()
 const categoriasStore = UseCategoriasStore()
 const comprasStore = UseComprasStore()
+const carritoStore = UseCarritoStore()
 
 const { talles } = toRefs(tallesStore)
 const { socios } = toRefs(sociosStore)
@@ -72,8 +75,19 @@ onMounted(async () => {
 await getAllTalles()
 await getAllSocios()
 await getAllCategorias()
+carritoStore.cargarCarrito()
 
 limpiar()
+if (authStore.user && socios.value.length > 0) {
+    const socioEncontrado = socios.value.find(
+      (s) => s.dni === authStore.user.username || s.email === authStore.user.email
+    )
+
+    if (socioEncontrado) {
+      // Guardamos el objeto socio completo en la compra para que el formulario y el submit lo utilicen
+      compra.value.socio = socioEncontrado
+    }
+  }
 
 })
 
@@ -100,33 +114,39 @@ const crear = async () => {
     return alert('Debe seleccionar un Socio');
   }
 
+  // Buscar el ID de la categoría por nombre
+  const categoriaBuscada = categorias.value.find(
+    (cat) => cat.nombre === item.categoria
+  );
+
+  if (!categoriaBuscada) {
+    return alert('Categoría no encontrada: ' + item.categoria);
+  }
 
   const articulo_json = {
     descripcion: item.descripcion,
-    precio: Number(item.precio) * Number(item.cantidad),
+    precio: Number(item.precio) ,
     cantidad: Number(item.cantidad),
     talle: item.talle.id || item.talle,
-    categoria: item.categoria.id || item.categoria,
-    socio: item.socio.id || item.socio,
+    categoria: categoriaBuscada.id,
+    socio: item.socio.id,
+    estado:item.estado ?? 'pendiente' ,// Agregamos el estado por defecto
+    
   };
 
-  console.log('Enviando a Django:', articulo_json);
+  console.log('Enviando a carrito:', articulo_json);
 
   try {
-    // Usamos "as any" para que TypeScript no se queje de que falta el objeto completo
-    await create(articulo_json as any);
-    
-    alert('Compra creada correctamente');
-    
-    // 3. Resetear el store correctamente
-    limpiarFormulario();
+    carritoStore.agregarAlCarrito(articulo_json as Compras);
+    alert('Producto agregado al carrito');
+    router.push({ name: 'carrito' });
     
   } catch (error: any) {
     console.error('Error detallado:', error.response?.data || error);
     const mensaje = error.response?.data 
       ? JSON.stringify(error.response.data) 
-      : 'Error de conexión con el servidor';
-    alert('Error al crear compra: ' + mensaje);
+      : 'Error al agregar al carrito';
+    alert('Error: ' + mensaje);
   }
 }
 
