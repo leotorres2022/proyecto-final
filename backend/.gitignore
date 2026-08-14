@@ -1,0 +1,19 @@
+# Backend
+backend/.env
+backend/.env.*
+!backend/.env.example
+backend/db.sqlite3
+
+# Python
+__pycache__/
+*.pyc
+
+# Frontend
+frontend/vue3/.env
+frontend/vue3/.env.*
+!frontend/vue3/.env.example
+frontend/vue3/node_modules/
+frontend/vue3/dist/
+
+# Media
+backend/media/
