@@ -14,9 +14,9 @@
         <div v-for="item in carritoStore.items" :key="item.idCarrito" class="item-carrito">
           <div class="item-info">
             <h3>{{ item.descripcion }}</h3>
-            <p><strong>Categoría:</strong> {{ item.categoria }}</p>
-            <p><strong>Talle:</strong> {{ item.talle?.nombre || item.talle }}</p>
-            <p><strong>Socio:</strong> {{ item.socio?.nombre || item.socio }}</p>
+            <p><strong>Categoría:</strong> {{ typeof item.categoria === 'object' ? item.categoria?.nombre : item.categoria }}</p>
+            <p><strong>Talle:</strong> {{ typeof item.talle === 'object' ? item.talle?.nombre : item.talle }}</p>
+            <p><strong>Socio:</strong> {{ typeof item.socio === 'object' ? item.socio?.nombre : item.socio }}</p>
             <p><strong>Cantidad:</strong> {{ item.cantidad }}</p>
             <p><strong>Precio unitario:</strong> ${{ item.precio }}</p>
             <p class="subtotal">

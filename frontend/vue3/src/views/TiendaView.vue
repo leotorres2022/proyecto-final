@@ -16,8 +16,13 @@
         :key="index"
         class="producto"
       >
-        <img :src="producto.imagen" :alt="producto.descripcion" />
-        <p>{{ producto.descripcion }}</p>
+        <img
+          v-if="producto.imagen"
+          :src="producto.imagen"
+          :alt="producto.nombre"
+        />
+        <div v-else class="producto-sin-imagen">Sin imagen disponible</div>
+        <p>{{ producto.nombre }}</p>
         <p>${{ producto.precio.toLocaleString() }}</p>
     
         <i
@@ -36,6 +41,7 @@ import 'primeicons/primeicons.css'
 import { onMounted, toRefs } from 'vue'
 import { useRouter } from 'vue-router'
 import useComprasStore from '@/stores/compras'
+import useProductosStore from '@/stores/producto'
 import type { Producto } from '@/interfaces/Producto'
 import useUserStore from '@/stores/user'
 import useCategoriasStore from '@/stores/categorias'
@@ -43,62 +49,27 @@ import useCategoriasStore from '@/stores/categorias'
 const userStore = useUserStore()
 const router = useRouter()
 const comprasStore = useComprasStore()
+const productosStore = useProductosStore()
 const categoriasStore = useCategoriasStore()
+const { productos } = toRefs(productosStore)
 const { categorias } = toRefs(categoriasStore)
-const { getAll } = categoriasStore
+
+const { getAll } = productosStore
+const { getAll: getAllCategorias } = categoriasStore
 
 onMounted(async () => {
+  await getAllCategorias()
   await getAll()
 })
 
 
 
-// Productos estáticos
-const productos = [
-  {
-    imagen: new URL('@/assets/camiseta.jpg', import.meta.url).href,
-    descripcion: 'Camiseta titular',
-    precio: 15000,
-    categoria: 'Camisetas'
-    },
-  {
-    imagen: new URL('@/assets/medias.jpg', import.meta.url).href,
-    descripcion: 'Medias de fútbol',
-    precio: 6000,
-    categoria: 'Medias Largas'
-   
-  
-
-  },
-  {
-    imagen: new URL('@/assets/conjunto-entrenamiento.jpg', import.meta.url).href,
-    descripcion: 'Conjunto de entrenamiento',
-    precio: 30000,
-    categoria: 'Buso'       
-
-  },
-    {
-    imagen: new URL('@/assets/conjunto-largo.jpeg', import.meta.url).href,
-    descripcion: 'Conjunto largo',
-    precio: 60000,  
-    categoria: 'Pantalon Largo'
-
-
-  },
-  {
-    imagen: new URL('@/assets/short.jpg', import.meta.url).href,
-    descripcion: 'Short de fútbol',
-    precio: 8000,
-    categoria: 'Short de Futbol'
-
-
-  }
-
-]
-
 
 function seleccionarProducto(producto: Producto) {
-  comprasStore.seleccionarProducto(producto)
+  const categoriaSeleccionada = categorias.value.find(
+    (cat) => cat.id === producto.categoria
+  )
+  comprasStore.seleccionarProducto(producto, categoriaSeleccionada)
   router.push({ name: 'compras_create' })
 }
 </script>

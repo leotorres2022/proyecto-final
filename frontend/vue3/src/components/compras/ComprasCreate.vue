@@ -4,14 +4,23 @@
       <div >
       <label>Nombre de Socio</label>
        <p class="socio-logueado">
-            {{ compra.socio?.nombre || 'Buscando perfil de socio...' }}
+            {{ typeof compra.socio === 'object' ? compra.socio?.nombre : 'Buscando perfil de socio...' }}
         </p>
         <label for="" >Descripcion del Articulo</label>
         <p >{{ compra.descripcion }}</p>
         <label for="" >Precio</label>
           <p >{{ compra.precio }}</p>
+          
+         <label for="">Stock disponible</label>
+        <p v-if="stockDisponible <= 0">  Sin stock disponible</p>
+<p v-else>
+  Stock disponible: {{ stockDisponible }}
+</p>
+
+          
+
         <label for="" >cantidad</label>
-        <input type="text" name="" v-model="compra.cantidad">
+        <input type="number" name="" v-model="compra.cantidad"   min="1"  :max="stockDisponible">
         <label for="" >Talle</label>
          <select v-model="compra.talle" required>
         <option v-for="talle in talles" :key="talle.id" :value="talle">
@@ -19,8 +28,9 @@
         </option>
        </select>
         <label for="" >Categoria</label>
-       <p>{{ compra.categoria }}</p>
+       <p>{{ typeof compra.categoria === 'object' ? compra.categoria?.nombre : (compra.categoria || 'Sin categoría') }}</p>
        </div>
+      
       <button type="submit">Crear</button>
     </form>
 
@@ -31,68 +41,116 @@
 </template>
 
 <script setup lang="ts">
-import { toRefs} from 'vue'
+import { computed, onMounted, toRefs, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import UseComprasStore from '../../stores/compras'
 import UseTallesStore from '../../stores/talles'
 import UseSociosStore from '../../stores/socios'
-import  UseCategoriasStore from '../../stores/categorias'
+import UseCategoriasStore from '../../stores/categorias'
 import UseCarritoStore from '../../stores/carrito'
+import UseProductosStore from '../../stores/producto'
 import { useAuthStore } from '@/stores/auth'
-import { computed } from 'vue'
+import type { Compras } from '@/interfaces/Compras'
+import ApiService from '@/services/ApiService'
+
 const authStore = useAuthStore()
-const socioLogueado = computed(() => {
-  return authStore.user; 
-})
-import { useRouter } from 'vue-router'
+const socioLogueado = computed(() => authStore.user)
 
 const router = useRouter()
-const limpiar = () => {
-  compra.value.cantidad = 1
-  compra.value.talle = undefined
- }
-
 const tallesStore = UseTallesStore()
 const sociosStore = UseSociosStore()
 const categoriasStore = UseCategoriasStore()
+const productosStore = UseProductosStore()
 const comprasStore = UseComprasStore()
 const carritoStore = UseCarritoStore()
 
 const { talles } = toRefs(tallesStore)
 const { socios } = toRefs(sociosStore)
 const { categorias } = toRefs(categoriasStore)
+const { productos } = toRefs(productosStore)
 const { compra } = toRefs(comprasStore)
 
 const { getAll: getAllTalles } = tallesStore
 const { getAll: getAllSocios } = sociosStore
 const { getAll: getAllCategorias } = categoriasStore
+const { getAll: getAllProductos } = productosStore
 const { create } = comprasStore
 
 
+const limpiar = () => {
+  compra.value.cantidad = 1
+  compra.value.talle = undefined
+}
 
-import { onMounted } from 'vue'
-import type { Compras } from '@/interfaces/Compras'
+
+const stockDisponible = ref(0)
+
+
+watch(
+  [() => compra.value.producto, () => compra.value.talle],
+  async ([nuevoProducto, nuevoTalle]) => {
+    console.log("Producto:", nuevoProducto)
+    console.log("Talle:", nuevoTalle)
+        if (nuevoProducto && nuevoTalle) {
+      try {
+        const productoId =
+          typeof nuevoProducto === 'object'
+            ? nuevoProducto.id
+            : nuevoProducto
+
+        const talleId =
+          typeof nuevoTalle === 'object'
+            ? nuevoTalle.id
+            : nuevoTalle
+
+        console.log("productoId:", productoId)
+        console.log("talleId:", talleId)
+
+        const url = `api/tallestock/${productoId}/${talleId}/`
+
+        console.log("URL:", url)
+
+        const response = await (ApiService as any).get(  `api/tallestock/${productoId}/${talleId}/`)
+
+        console.log("Respuesta stock:", response)
+
+        stockDisponible.value = response?.stock ?? 0
+
+            console.log( "Stock disponible:",     stockDisponible.value      )
+
+            
+        } catch (error) {
+        console.error("Error al consultar stock:", error)
+        stockDisponible.value = 0
+      }
+    } else {
+      stockDisponible.value = 0
+    }
+  },
+  { immediate: true }
+)
+
 onMounted(async () => {
-await getAllTalles()
-await getAllSocios()
-await getAllCategorias()
-carritoStore.cargarCarrito()
+  await getAllTalles()
+  await getAllSocios()
+  await getAllCategorias()
+  await getAllProductos()
+  carritoStore.cargarCarrito()
 
-limpiar()
-if (authStore.user && socios.value.length > 0) {
+  limpiar()
+
+  if (authStore.user && socios.value.length > 0) {
     const socioEncontrado = socios.value.find(
       (s) => s.dni === authStore.user.username || s.email === authStore.user.email
     )
 
     if (socioEncontrado) {
-      // Guardamos el objeto socio completo en la compra para que el formulario y el submit lo utilicen
       compra.value.socio = socioEncontrado
     }
   }
-
 })
 
 const crear = async () => {
-  // 1. Validaciones locales para evitar tocar el store prematuramente
   const item = compra.value;
 
   if (!item.descripcion?.trim()) {
@@ -104,6 +162,11 @@ const crear = async () => {
   if (Number(item.cantidad) <= 0) {
     return alert('La cantidad debe ser mayor a 0');
   }
+  if (Number(item.cantidad) > stockDisponible.value) {
+  return alert(
+    `La cantidad supera el stock disponible. Stock disponible: ${stockDisponible.value}`
+  );
+}
   if (!item.talle) {
     return alert('Debe seleccionar un Talle');
   }
@@ -113,41 +176,42 @@ const crear = async () => {
   if (!item.socio) {
     return alert('Debe seleccionar un Socio');
   }
-
-  // Buscar el ID de la categoría por nombre
-  const categoriaBuscada = categorias.value.find(
-    (cat) => cat.nombre === item.categoria
-  );
-
-  if (!categoriaBuscada) {
-    return alert('Categoría no encontrada: ' + item.categoria);
+  if (!item.producto) {
+    return alert('Debe seleccionar un producto');
   }
 
   const articulo_json = {
     descripcion: item.descripcion,
-    precio: Number(item.precio) ,
+    precio: Number(item.precio),
     cantidad: Number(item.cantidad),
-    talle: item.talle.id || item.talle,
-    categoria: categoriaBuscada.id,
-    socio: item.socio.id,
-    estado:item.estado ?? 'pendiente' ,// Agregamos el estado por defecto
-    
+    producto: item.producto,
+    talle: typeof item.talle === 'object' ? item.talle?.id : item.talle,
+    categoria: typeof item.categoria === 'object' ? item.categoria?.id : item.categoria,
+    socio: typeof item.socio === 'object' ? item.socio?.id : item.socio,
+    estado: item.estado ?? 'pendiente',
   };
 
   console.log('Enviando a carrito:', articulo_json);
+  console.log("========== VENTA ==========")
+console.log("Producto:", item.producto)
+console.log("Talle:", item.talle)
+console.log("Cantidad vendida:", item.cantidad)
+console.log("Stock antes:", stockDisponible.value)
 
   try {
     carritoStore.agregarAlCarrito(articulo_json as Compras);
     alert('Producto agregado al carrito');
     router.push({ name: 'carrito' });
-    
+    console.log("✅ Venta guardada")
+console.log("Stock que debería quedar:",
+  stockDisponible.value - Number(item.cantidad)
+)
   } catch (error: any) {
-    console.error('Error detallado:', error.response?.data || error);
-    const mensaje = error.response?.data 
-      ? JSON.stringify(error.response.data) 
-      : 'Error al agregar al carrito';
-    alert('Error: ' + mensaje);
-  }
+    console.error("❌ ERROR AL GUARDAR COMPRA")
+    console.error("Status:", error.response?.status)
+    console.error("Respuesta backend:", error.response?.data)
+    console.error("Error completo:", error)
+}
 }
 
 const limpiarFormulario = () => {
@@ -160,7 +224,6 @@ const limpiarFormulario = () => {
     socio: undefined
   };
 }
-
 </script>
 
 <style scoped>

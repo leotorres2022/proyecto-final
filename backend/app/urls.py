@@ -23,13 +23,15 @@ from socios.views import SocioViewSet
 from talles.views import TalleViewSet
 from categorias.views import CategoriaViewSet
 from compras.views import CompraViewSet 
+from producto.views import ProductoViewSet  
 
-# 1. Configuración de Routers (Solo para ViewSets de Socios, Talles, etc.)
+
 router = routers.DefaultRouter()
 router.register(r'socios', SocioViewSet)
 router.register(r'talles', TalleViewSet)
 router.register(r'categorias', CategoriaViewSet)
 router.register(r'compras', CompraViewSet)
+router.register(r'productos', ProductoViewSet)
 
 # 2. Configuración de URLs
 urlpatterns = [
@@ -37,6 +39,7 @@ urlpatterns = [
     
     # Rutas automáticas del router (socios, talles, etc.)
     path('api/', include(router.urls)),
+    path('api/', include('producto.urls')),
     
     # Rutas manuales de TORNEOS (Donde están divisiones, tabla y partidos)
     # IMPORTANTE: Esto hará que las rutas empiecen con 'api/torneos/'

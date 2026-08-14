@@ -3,37 +3,30 @@
   <table>
     <thead>
       <tr>
-        <th>id</th>
-        <th>Descripcion</th>
-        <th>Precio Final</th>
-        <th>Cantidad</th>
-        <th>Talle</th>
-        <th>Categoria</th>
+        
         <th>Socio</th>
+        <th>Precio Final</th>
+        <th>Fecha</th>
         <th>Estado</th>
-        <th v-if="userStore.modo === 'admin'" >Acciones</th>
-      </tr>
+        <th>Detalles</th>
+        </tr>
     </thead>
     <tbody>
 <tr v-for="compra in compras" :key="compra.id">
-  <td>{{ compra.id }}</td>
-  <td>{{ compra.descripcion }}</td>
-  <td>{{ compra.precio }}</td>
-  <td>{{ compra.cantidad }}</td>
-  
-  <!-- Cambiamos .talle?.nombre por .talle_detalle -->
-  <td>{{ compra.talle|| 'Sin talle' }}</td>
-  
-  <!-- Cambiamos .categoria?.nombre por .categoria_detalle -->
-  <td>{{ compra.categoria|| 'Sin categoria' }}</td>
-  
-  <!-- Cambiamos .socio?.nombre por .socio_detalle -->
-  <td>{{ compra.socio || 'Sin nombre' }}</td>
-
-   <td >
-  {{ compra.estado }}
-</td>
-</tr>
+  <td>{{ typeof compra.socio === 'object' ? compra.socio?.nombre : (compra.socio || 'Sin nombre') }}</td>
+  <td>{{ compra.total }}</td>
+  <td>{{ formatoFecha(compra.fecha) }}</td>
+  <td>{{ compra.estado }}</td>
+  <td>
+      <router-link :to="{ name: 'compras_show', params: { id: compra.id } }">
+    <i class="pi pi-eye" style="font-size: 1.5rem"></i>
+  </router-link>
+ 
+      <router-link :to="{ name: 'compras_update', params: { id: compra.id } }">
+    <i class="pi pi-pencil" style="font-size: 1.5rem"></i>
+  </router-link>
+  </td>
+  </tr>
     </tbody>
   </table>
 </template>
@@ -68,6 +61,11 @@ async function eliminar(id: number) {
     await destroy(id)
     await getAll()
   }
+}
+
+const formatoFecha = (fecha: string | undefined) => {
+  if (!fecha) return 'Sin fecha'
+  return fecha.slice(0, 10)
 }
 
 const getClaseEstado = (estado: string) => {

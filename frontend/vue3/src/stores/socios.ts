@@ -37,11 +37,13 @@ const url = 'api/socios/'
   }
 
   async function create(socio: Socios) {
-    const response = await ApiService.create(url, socio)
-    if (response) {
-           return response
+    try {
+      const response = await ApiService.create(url, socio)
+      return response
+    } catch (error) {
+      console.error('Error en SociosStore.create:', error)
+      throw error
     }
-
   }
 
  async function update(socio: Socios) {

@@ -15,7 +15,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import useSociosStore from '@/stores/socios';
@@ -38,8 +38,15 @@ async function handleLogin() {
     }
 
     router.push('/'); // Si no es socio por teléfono, directo al Home
-  } catch (error) {
-    alert('Credenciales incorrectas o error de servidor');
+  } catch (error: any) {
+    const status = error?.response?.status
+    if (status === 401) {
+      alert('Credenciales incorrectas');
+    } else if (status >= 500 || status === undefined) {
+      alert('Error de servidor');
+    } else {
+      alert('Error al iniciar sesión');
+    }
   }
 }
 </script>

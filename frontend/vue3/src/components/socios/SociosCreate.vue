@@ -59,12 +59,26 @@ const crear = async ()=> {
   else if (!socio.value.email) {
     alert('El email del socio es obligatorio')
   }
-else
-  {
-    const response = await create(socio.value)
-    limpiarFormulario()
-    alert('Socio creado correctamente')
-    console.log(response)
+else {
+    try {
+      const response = await create(socio.value)
+      limpiarFormulario()
+      alert('Socio creado correctamente')
+      console.log(response)
+    } catch (error: any) {
+      console.error('Error creando socio:', error)
+      let mensaje = 'Error al crear el socio.'
+      if (error && typeof error === 'object') {
+        if (Array.isArray(error.email)) {
+          mensaje = `Email inválido o ya registrado: ${error.email.join(' ')}`
+        } else if (error.email) {
+          mensaje = `Email inválido o ya registrado: ${error.email}`
+        } else {
+          mensaje = JSON.stringify(error)
+        }
+      }
+      alert(mensaje)
+    }
   }
 }
 

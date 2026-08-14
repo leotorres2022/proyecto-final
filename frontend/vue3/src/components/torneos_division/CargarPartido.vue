@@ -87,7 +87,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from 'vue';
-import axios from 'axios';
+import { instance as axios } from '@/plugins/axios';
 
 interface Partido {
   division: number | string;
@@ -180,8 +180,8 @@ const eliminarPartido = (index: number) => {
 
 onMounted(async () => {
   try {
-    const resDivisiones = await axios.get('http://localhost:8000/api/torneos/division/');
-    const resEquipos = await axios.get('http://localhost:8000/api/torneos/equipos/');
+    const resDivisiones = await axios.get('/api/torneos/division/');
+    const resEquipos = await axios.get('/api/torneos/equipos/');
 
     divisiones.value = Array.isArray(resDivisiones.data) ? resDivisiones.data : [];
     equipos.value = Array.isArray(resEquipos.data) ? resEquipos.data : [];
@@ -215,7 +215,7 @@ const guardarTodosLosPartidos = async () => {
   try {
     // Guardar todos los partidos
     const promesas = partidos.value.map((partido) =>
-      axios.post('http://localhost:8000/api/torneos/partidos/', partido)
+      axios.post('/api/torneos/partidos/', partido)
     );
 
     await Promise.all(promesas);

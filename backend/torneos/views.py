@@ -1,14 +1,16 @@
 from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from torneos.permisos import IsAdminUserOrGroup
 from .models import Division, Equipo, Partido
 from .serializers import DivisionSerializer, PartidoSerializer
 from rest_framework.decorators import api_view
+from rest_framework.permissions import AllowAny
 
 
 class PartidosPorDivisionListView(generics.ListAPIView):
     serializer_class = PartidoSerializer
-
+    permission_classes = [AllowAny]  # Permitir acceso a todos los usuarios
     def get_queryset(self):
         division_id = self.kwargs['division_id']
         # Obtenemos la fecha desde la URL (ej: ?fecha=2)
@@ -26,15 +28,27 @@ class DivisionListCreateView(generics.ListCreateAPIView):
     queryset = Division.objects.all()
     serializer_class = DivisionSerializer
 
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [IsAdminUserOrGroup()]
+        return [AllowAny()]
+
 # 2. VISTA PARA VER, EDITAR O ELIMINAR UNA DIVISIÓN ESPECÍFICA
 class DivisionRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Division.objects.all()
     serializer_class = DivisionSerializer
 
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [AllowAny()]
+        return [IsAdminUserOrGroup()]
+
+
 
 class EquipoListView(generics.ListAPIView):
     queryset = Equipo.objects.all()
     serializer_class = None
+    permission_classes = [AllowAny]
 
     def get(self, request, *args, **kwargs):
         equipos = []
@@ -59,6 +73,7 @@ class EquipoListView(generics.ListAPIView):
 class PartidoCreateView(generics.CreateAPIView):
     queryset = Partido.objects.all()
     serializer_class = PartidoSerializer
+    permission_classes = [IsAdminUserOrGroup]  #  solo 'admin' pueden acceder
 
 # 3. TU VISTA DE TABLA DE POSICIONES (Optimizada)
 class TablaPosicionesView(APIView):
@@ -119,6 +134,7 @@ class TablaPosicionesView(APIView):
 @api_view(['POST'])
 def crear_partido(request):
     serializer = PartidoSerializer(data=request.data)
+    
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data, status=201)

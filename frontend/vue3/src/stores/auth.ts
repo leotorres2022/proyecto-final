@@ -28,8 +28,12 @@ export const useAuthStore = defineStore('auth', () => {
     refreshToken.value = response.data.refresh
 
     // 2. Guardamos en sessionStorage al iniciar sesión
+    // Guardamos en localStorage para que el interceptor axios pueda leerlos
     localStorage.setItem('access', response.data.access)
     localStorage.setItem('refresh', response.data.refresh)
+
+    // También actualizamos el header por defecto en el cliente axios
+    api.defaults.headers.Authorization = `Bearer ${response.data.access}`
 
     // Cargar los datos del usuario después del login
     await loadUser()

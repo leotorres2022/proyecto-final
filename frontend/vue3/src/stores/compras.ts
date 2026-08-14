@@ -5,6 +5,8 @@ import ApiService from "@/services/ApiService"
 import type  {Socios}   from '@/interfaces/Socios'
 import type {Talles} from '@/interfaces/Talles'
 import type {Compras} from '@/interfaces/Compras'
+import type { Categorias } from "@/interfaces/Categorias"
+import type { Producto } from '@/interfaces/Producto'
 
 const useComprasStore = defineStore('compras', () => {
   const compras = ref<Array<Compras>>([])
@@ -14,7 +16,7 @@ const useComprasStore = defineStore('compras', () => {
     precio: 0,
     cantidad: 0,
     talle: {} as Talles,
-    categoria: undefined,
+    categoria: {} as Categorias,
     socio: {} as Socios,
     estado: 'pendiente' // Valor por defecto para el estado
   })
@@ -53,10 +55,11 @@ const url = 'api/compras'
           }
   }
 
-function seleccionarProducto(producto: { descripcion: string; precio: number; categoria: string }) {
-  compra.value.descripcion = producto.descripcion
+function seleccionarProducto(producto: Producto, categoria?: Categorias) {
+  compra.value.descripcion = producto.nombre
   compra.value.precio = producto.precio
-  compra.value.categoria = producto.categoria as any
+  compra.value.categoria = categoria ?? (producto.categoria as any)
+  compra.value.producto = producto
 }
 
 

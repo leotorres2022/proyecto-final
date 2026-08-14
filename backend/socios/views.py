@@ -2,17 +2,20 @@ from django.shortcuts import render
 from rest_framework import viewsets
 from .models import Socio
 from .serializers import SocioSerializer
+from rest_framework.permissions import IsAuthenticated
+from .permisos import IsAdminUserOrGroup
+
 # Importamos la función de Telegram para enviar mensajes al crear un socio
 from .utils import enviar_notificacion_telegram
 
-# Create your views here.
+
 
 class SocioViewSet(viewsets.ModelViewSet):
     queryset = Socio.objects.all()
     serializer_class = SocioSerializer
-
+    permission_classes = [IsAuthenticated, IsAdminUserOrGroup]
     def perform_create(self, serializer):
-        # 1. Primero guardamos el socio en la base de datos y lo guardamos en una variable
+      
         socio = serializer.save()
         print(f"[Socios] Socio creado: {socio.nombre}, telefono={socio.telefono}")
         

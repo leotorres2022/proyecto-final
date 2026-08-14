@@ -1,0 +1,11 @@
+from rest_framework.permissions import BasePermission
+
+class IsAdminUserOrGroup(BasePermission):
+     def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+        return (
+            request.user.is_superuser or 
+            request.user.groups.filter(name='admin').exists() or
+            request.user.groups.filter(name='socio').exists()
+        )
