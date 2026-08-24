@@ -6,7 +6,7 @@ class ApiService {
   }
 static async get(endpoint: string, params?: object) {
     try {
-        // Asegúrate de pasar 'params' dentro del segundo argumento de axios.get
+       
         const response = await axios.get(endpoint, { params });
         return response.data;
     } catch (error) {
@@ -46,5 +46,10 @@ static async destroy (url: string, id: number) {
     }
   }
 
+ static async destroyUrl(endpoint: string) {
+  const response = await axios.delete(endpoint)
+  return response.data
 }
+}
+
 export default ApiService

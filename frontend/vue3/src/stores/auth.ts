@@ -3,7 +3,6 @@ import { ref, computed } from 'vue'
 import { instance as api } from '@/plugins/axios'
 
 export const useAuthStore = defineStore('auth', () => {
-  // 1. Cambiamos localStorage por sessionStorage para la inicialización
   const accessToken = ref<string | null>(localStorage.getItem('access') || null)
   const refreshToken = ref<string | null>(localStorage.getItem('refresh') || null)
   const user = ref<any>(null)
@@ -27,8 +26,8 @@ export const useAuthStore = defineStore('auth', () => {
     accessToken.value = response.data.access
     refreshToken.value = response.data.refresh
 
-    // 2. Guardamos en sessionStorage al iniciar sesión
-    // Guardamos en localStorage para que el interceptor axios pueda leerlos
+   
+    // Guardo en localStorage para que el interceptor axios pueda leerlo
     localStorage.setItem('access', response.data.access)
     localStorage.setItem('refresh', response.data.refresh)
 

@@ -1,47 +1,136 @@
 <template>
   <div>
     <form @submit.prevent="crear">
-      <div >
-        <label for="" >Nombre de la Categoria</label>
-        <input type="text" name="create" v-model="categoria.nombre">
-      </div>
-      <button type="submit">Crear Categoria</button>
-    </form>
 
+      <div>
+        <label>Nombre del Producto</label>
+        <input
+          type="text"
+          v-model="producto.nombre"
+        >
+      </div>
+
+      <div>
+        <label>Precio</label>
+        <input
+          type="number"
+          v-model="producto.precio"
+        >
+      </div>
+      <label>Categoria</label>
+<select v-model="producto.categoria" required>
+  <option disabled value="">Seleccioná una categoría</option>
+
+  <option
+    v-for="categoria in categorias"
+    :key="categoria.id"
+    :value="categoria.id"
+  >
+    {{ categoria.nombre }}
+  </option>
+</select>
+
+      <div>
+        <label>Imagen</label>
+        <input
+          type="file"
+          @change="seleccionarImagen"
+        >
+      </div>
+
+      <button type="submit">
+        Crear Producto
+      </button>
+
+    </form>
   </div>
-    <div class="volver" >
-          <router-link :to="{name:'categorias_list'}"><i class="pi pi-arrow-circle-left" style="font-size: 2rem"></i></router-link>
+
+  <div class="volver">
+    <router-link :to="{ name: 'productos_list' }">
+      <i
+        class="pi pi-arrow-circle-left"
+        style="font-size: 2rem"
+      ></i>
+    </router-link>
   </div>
 </template>
 
 <script setup lang="ts">
-import { toRefs} from 'vue'
-import  UseCategoriasStore from '../../stores/categorias'
-import { onMounted } from 'vue'
-const {categoria} = toRefs(UseCategoriasStore())
-const limpiarFormulario = () => {
-  categoria.value = {
-    nombre: '',
+import { toRefs, onMounted } from 'vue'
+import  UseProductoStore from '../../stores/producto'
+import { ref } from 'vue'
+import  useCategoriasStore  from '@/stores/categorias'
 
+const productoStore = UseProductoStore()
+const categoriasStore = useCategoriasStore()
+const { categorias } = toRefs(categoriasStore)  
+const { producto } = toRefs(productoStore)
+const { getAll: getAllCategorias } = categoriasStore
+
+const imagenArchivo = ref<File | null>(null)
+
+const limpiarFormulario = () => {
+  producto.value = {
+    id: 0,
+    nombre: '',
+    precio: 0,
+    categoria: 0,
+    imagen: null
   }
+   imagenArchivo.value = null
 }
+
 onMounted(() => {
   limpiarFormulario()
+  getAllCategorias()
 })
-const {create} = UseCategoriasStore()
-const crear = async ()=> {
-  if (!categoria.value.nombre) {
-    alert('El nombre de la categoria es obligatorio')
-  }
-else
-  {
-    const response = await create(categoria.value)
-    categoria.value.nombre= ''
-    alert('Categoria creada correctamente')
-    console.log(response)
+
+const seleccionarImagen = (event: Event) => {
+  const input = event.target as HTMLInputElement
+
+  if (input.files && input.files.length > 0) {
+    const archivo = input.files[0]
+
+    if (archivo) {
+      imagenArchivo.value = archivo
+    }
   }
 }
 
+const crear = async () => {
+
+  if (!producto.value.nombre) {
+    alert('El nombre del producto es obligatorio')
+    return
+  }
+
+  if (producto.value.precio <= 0) {
+    alert('El precio debe ser mayor a 0')
+    return
+  }
+
+  if (!producto.value.categoria) {
+    alert('La categoría es obligatoria')
+    return
+  }
+
+  try {
+    const response = await productoStore.create(
+  producto.value,
+  imagenArchivo.value
+)
+
+    console.log(response)
+
+    alert('Producto creado correctamente')
+
+    limpiarFormulario()
+
+  } catch (error) {
+    console.error(error)
+    alert('Error al crear el producto')
+  }
+}
 </script>
 
 <style scoped>

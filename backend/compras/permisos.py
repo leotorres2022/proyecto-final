@@ -15,12 +15,11 @@ class IsAdminOrCreateAuthenticated(BasePermission):
     Para otros métodos requiere que el usuario sea superusuario o miembro del grupo 'admin'.
     """
     def has_permission(self, request, view):
-        # Permitir crear a cualquier usuario autenticado
-        if request.method == 'POST':
+       
+        if request.method == 'POST': #para crear cualquier usuario autenticado
             return bool(request.user and request.user.is_authenticated)
 
-        # Para otros métodos (GET, PUT, DELETE...) se requiere admin
-        if not request.user or not request.user.is_authenticated:
+        if not request.user or not request.user.is_authenticated: #para otros metodos ser admin
             return False
         return (
             request.user.is_superuser or

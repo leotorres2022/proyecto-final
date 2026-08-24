@@ -14,9 +14,9 @@ const useSociosStore = defineStore('socios', () => {
     direccion: '',
     email: '',
     telefono: '',
-    estado: 'Activo'
+    estado: 'Pendiente'
   })
-  // Ensure required default fields exist (estado included above)
+ 
 const url = 'api/socios/'
   async function getAll()
   {

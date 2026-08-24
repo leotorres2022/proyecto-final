@@ -113,7 +113,7 @@ const totalLinks = [
     imagen: new URL('@/assets/galeria/formando_futuro.png', import.meta.url).href,
   },
   { name: 'CLUB', to: { name: 'club' }, groups: ['public'] },
-  { name: 'TIENDA', to: { name: 'tienda' }, groups: ['socio'] },
+  { name: 'TIENDA', to: { name: 'tienda' }, groups: ['admin', 'socio'] },
   { name: 'GALERIA', to: { name: 'galeria' }, groups: ['public'] },
   { name: 'SOCIOS', to: { name: 'socios_list' }, groups: ['admin', 'profe', 'socio'] },
   { name: 'COMPRAS', to: { name: 'compras_list' }, groups: ['admin'] },

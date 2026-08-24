@@ -11,15 +11,12 @@ const useDivisionStore = defineStore('division', () => {
     nombre: ''      
   })
   
-  // Nuevos estados para la tabla y los resultados
+
   const tablaPosiciones = ref<Array<any>>([])
   const partidos = ref<Array<any>>([])
 
   const url = 'api/torneos/division/'
 
-  // --- ACCIONES ---
-
-  // 1. Obtener todas las divisiones (para el select)
   async function getAll() {
     try {
       const data = await ApiService.getAll(url)
@@ -29,13 +26,11 @@ const useDivisionStore = defineStore('division', () => {
     }
   }
 
-  // 2. Obtener la tabla de posiciones calculada por Django
 async function getTabla(divisionId: number) {
   try {
-    // Forzamos la ruta completa sin depender tanto de la variable 'url'
+   
     const rutaFinal = `api/torneos/division/${divisionId}/tabla/`;
-    console.log("Llamando a:", rutaFinal); // REVISA ESTO EN LA CONSOLA (F12)
-    
+    console.log("Llamando a:", rutaFinal);
     const data = await ApiService.getAll(rutaFinal);
     console.log("Respuesta de Tabla:", data);
     tablaPosiciones.value = data;
@@ -43,33 +38,41 @@ async function getTabla(divisionId: number) {
     console.error("Error en getTabla:", error);
   }
 }
- // 3. Obtener los partidos/resultados de la división (CON FILTRO DE FECHA)
+
 async function getPartidos(divisionId: number, fecha: number | null = null) {
   try {
-    // 1. Empezamos con la URL base
+   
     let endpoint = `${url}${divisionId}/partidos/`;
 
-    // 2. Si se pasó una fecha, agregamos el parámetro de consulta (Query Param)
-    if (fecha !== null) {
+     if (fecha !== null) {
       endpoint += `?fecha=${fecha}`;
     }
 
-    // 3. Llamamos a la API con la URL final (ej: .../partidos/?fecha=3)
-    const data = await ApiService.getAll(endpoint);
+   const data = await ApiService.getAll(endpoint);
     partidos.value = data;
     
   } catch (error) {
     console.error('Error al obtener partidos:', error);
-    // Es buena idea limpiar los partidos si hay error para no mostrar datos viejos
-    partidos.value = [];
+    partidos.value = [];  /*limpio los partidos viejos si hay error para no mostrar viejos*/
+  }
+}
+async function borrarPartidosFecha( divisionId: number, fecha: number | null = null) {
+  try {
+    const endpoint = `${url}${divisionId}/partidos/?fecha=${fecha}`
+    const data = await ApiService.destroyUrl(endpoint)
+    await getPartidos(divisionId, fecha)
+    return data
+  } catch (error) {
+    console.error('Error al borrar los partidos:', error)
+    throw error
   }
 }
 
-  // --- CRUD BÁSICO ---
+
   async function create(division: Torneos_division) {
     const response = await ApiService.create(url, division)
     if (response) {
-      await getAll() // Refrescar lista tras crear
+      await getAll() // Refresco la lista tras crear
       return response
     }
   }
@@ -78,7 +81,7 @@ async function getPartidos(divisionId: number, fecha: number | null = null) {
     if (division.id) {
       const data = await ApiService.update(url, division.id, division)
       if (data) {
-        await getAll() // Refrescar lista tras actualizar
+        await getAll() // Refresco la lista tras actualizar
         return data
       }
     }
@@ -87,23 +90,25 @@ async function getPartidos(divisionId: number, fecha: number | null = null) {
   async function destroy(id: number) {
     const data = await ApiService.destroy(url, id)
     if (data) {
-      await getAll() // Refrescar lista tras borrar
+      await getAll() // Refresco la lista tras borrar
       return data
     }
   }
 
-  // --- RETORNO ---
-  // IMPORTANTE: Debes incluir las nuevas variables y funciones aquí para que Vue las vea
+
+
+  
   return { 
     divisions, 
     division, 
     tablaPosiciones, 
     partidos, 
+    borrarPartidosFecha,  
     getAll, 
     getTabla, 
     getPartidos, 
     destroy, 
-    create, 
+    create,
     update 
   }
 })

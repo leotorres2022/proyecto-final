@@ -3,6 +3,9 @@ const socios_routes = [
     path: '/socios',
     name: 'socios',
     component: () => import('../views/SociosView.vue'),
+      meta: {
+      requiresAuth: true
+    },
     children: [
       {
         path: '',

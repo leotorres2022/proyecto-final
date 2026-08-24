@@ -1,7 +1,7 @@
 from django.db import models
 
 class Division(models.Model):
-    nombre = models.CharField(max_length=50) # Ej: "7ma División"
+    nombre = models.CharField(max_length=50) 
     
     def __str__(self):
         return self.nombre
@@ -25,4 +25,4 @@ class Partido(models.Model):
 
     def __str__(self):
         return f"{self.equipo_local} vs {self.equipo_visitante}"
-# Create your models here.
+

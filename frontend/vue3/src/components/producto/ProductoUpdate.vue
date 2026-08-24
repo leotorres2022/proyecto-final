@@ -1,47 +1,129 @@
 <template>
   <div>
     <form @submit.prevent="editar">
-      <div class="detalle-socio">
-    <label>Nombre</label>
-    <input type="text" v-model="categoria.nombre" class="dato">
-     </div>
-      <button type="submit" class="modificar">Modificar</button>
-    </form>
 
+      <div class="detalle-socio">
+        <label>Nombre</label>
+        <input
+          type="text"
+          v-model="producto.nombre"
+          class="input"
+        >
+        <label>Precio</label>
+        <input
+          type="number"
+          step="0.01"
+          v-model="producto.precio"
+          class="input"
+        >
+        <label>Categoría</label>
+        <input
+          type="number"
+          v-model="producto.categoria"
+          class="input"
+        >
+        <label>Imagen</label>
+        <input
+          type="file"
+          accept="image/*"
+          @change="seleccionarImagen"
+          class="input"
+        >
+        <div v-if="producto.imagen" class="imagen-actual">
+          <p>Imagen actual:</p>
+          <img
+            :src="producto.imagen"
+            :alt="producto.nombre"
+          >
+        </div>
+      </div>
+      <button type="submit" class="modificar">
+        Modificar Producto
+      </button>
+    </form>
   </div>
-  <div class="volver" >
-    <router-link :to="{name:'categorias_list'}"><i class="pi pi-arrow-circle-left" style="font-size: 2rem"></i></router-link>
+
+  <div class="volver">
+    <router-link :to="{ name: 'productos_list' }">
+      <i    class="pi pi-arrow-circle-left"   style="font-size: 2rem"></i>
+    </router-link>
   </div>
 </template>
+
 <script setup lang="ts">
-import { toRefs } from 'vue';
-import  UseCategoriasStore from '../../stores/categorias'
-import { useRoute} from 'vue-router';
-import { onMounted } from 'vue';
+
+import { ref, toRefs, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+import UseProductosStore from '../../stores/producto'
 const route = useRoute()
-const { categoria,categorias} = toRefs(UseCategoriasStore())
-const {update} = UseCategoriasStore()
-onMounted(async () => {
-  const id = route.params.id
-  console.log('ID de la marca a editar:', id)
-const encontrada= categorias.value.find(categoria => categoria.id == parseInt(id as string));
-categoria.value =  encontrada ?? { nombre: '' }
+const productosStore = UseProductosStore()
+const { producto, productos } = toRefs(productosStore)
+const imagenArchivo = ref<File | null>(null)
+
+  onMounted(() => {
+  const id = Number(route.params.id)
+  const encontrado = productos.value.find(
+    p => p.id === id
+  )
+
+  if (encontrado) {
+    producto.value = { ...encontrado }
+  }
+
 })
 
-const editar = async () => {
-  if (!categoria.value.nombre) {
-    alert('El nombre de la categoria es obligatorio');
-  } else {
-    const response = await update(categoria.value);
-    alert('Categoria actualizada correctamente');
-    categoria.value.nombre= ''
-    console.log(response);
+const seleccionarImagen = (event: Event) => {
+
+  const input = event.target as HTMLInputElement
+
+  if (input.files && input.files.length > 0) {
+    const archivo = input.files[0]
+    if (archivo) {
+      imagenArchivo.value = archivo
+    }
   }
-};
+
+}
+
+const editar = async () => {
+
+  if (!producto.value.nombre) {
+    alert('El nombre es obligatorio')
+    return
+  }
+
+  if (producto.value.precio <= 0) {
+    alert('El precio debe ser mayor a 0')
+    return
+  }
+
+  if (!producto.value.categoria) {
+    alert('La categoría es obligatoria')
+    return
+  }
+
+  try {
+  await productosStore.update(producto.value)
+
+  alert('Producto actualizado correctamente')
+
+} catch (error: any) {
+  console.error('ERROR COMPLETO:', error)
+  console.error('RESPUESTA DJANGO:', error.response?.data)
+
+  alert(
+    JSON.stringify(
+      error.response?.data || error.message
+    )
+  )
+}
+
+}
 
 </script>
 
 <style scoped>
+
 .detalle-socio {
   max-width: 800px;
   margin: 2rem auto;
@@ -54,43 +136,47 @@ const editar = async () => {
   font-size: 1.3rem;
 }
 
-.detalle-socio h2 {
-  text-align: center;
-  color: #444;
-  margin-bottom: 1.5rem;
+.detalle-socio label {
+  display: block;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
 }
 
-.detalle-socio p {
-  margin: 1rem 0;
-  font-size: 1.3rem;
-  display: flex;
-  align-items: center;
+.input {
+  width: 100%;
+  padding: 0.7rem;
+  box-sizing: border-box;
+  font-size: 1rem;
 }
 
-.dato {
-  margin-left: 8px;
-  color: #007BFF;
-  font-weight: bold;
-  font-size: 1.3rem;
+.imagen-actual {
+  margin-top: 1rem;
 }
+
+.imagen-actual img {
+  max-width: 200px;
+  max-height: 200px;
+  object-fit: contain;
+}
+
 .modificar {
   display: block;
-  width: 10%;
+  width: 20%;
   padding: 0.6rem;
   background-color: #4CAF50;
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 1.3rem;
+  font-size: 1.1rem;
   margin: 1rem auto;
-  text-align: center;
 }
-.volver{
+
+.volver {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 20vh; 
+  height: 20vh;
 }
 
 </style>

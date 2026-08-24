@@ -7,8 +7,14 @@
         <input type="text" name="create" v-model="socio.nombre">
         <label for="" >DNI</label>
         <input type="text" name="create" v-model="socio.dni" required>
-        <label for="" >División</label>
-        <input type="text" name="create" v-model="socio.division">
+ <label for="division">División</label>
+
+<select v-model="socio.division" required>
+  <option value="" disabled>Seleccionar división</option>
+  <option   v-for="division in divisions"  :key="division.id"  :value="division.nombre"  >
+    {{ division.nombre }}
+  </option>
+</select>
         <label for="" >telefono</label>
         <input type="text" name="create" v-model="socio.telefono">
         <label for="" >Direccion</label>
@@ -24,9 +30,13 @@
   </div>
 </template>
 <script setup lang="ts">
+
 import { onMounted } from 'vue'
-import { toRefs} from 'vue'
+import { toRefs,ref} from 'vue'
 import  UseSociosStore from '../../stores/socios'
+import  UseDivisionesStore from '../../stores/division'
+const divisionesStore = UseDivisionesStore()
+const { divisions} = toRefs(divisionesStore);
 const {socio: socio} = toRefs(UseSociosStore())
 const {create} = UseSociosStore()
 const limpiarFormulario = () => {
@@ -40,8 +50,16 @@ const limpiarFormulario = () => {
     estado: 'Pendiente'
   }
 }
-onMounted(() => {
+onMounted(async () => {
   limpiarFormulario()
+
+  try {
+    await divisionesStore.getAll();
+  } catch (error) {
+    console.error("Error al cargar las divisiones:", error);
+  }
+
+ 
 })
 const crear = async ()=> {
   if (!socio.value.nombre)  {
@@ -122,7 +140,5 @@ button {
   align-items: center;
   height: 20vh;
 }
-
-
 
 </style>

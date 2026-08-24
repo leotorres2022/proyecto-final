@@ -3,6 +3,9 @@ const talles_routes = [
     path: '/talles',
     name: 'talles',
     component: () => import('../views/TallesView.vue'),
+    meta : {
+      requiresAuth: true
+    },
     children: [
       {
         path: '',

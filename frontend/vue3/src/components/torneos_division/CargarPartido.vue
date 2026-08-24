@@ -3,7 +3,7 @@
     <div class="fecha-selector">
       <label for="fecha-input">Seleccionar Fecha:</label>
       <select id="fecha-input" v-model.number="fechaActual" class="fecha-select">
-        <option v-for="n in 10" :key="n" :value="n">Fecha {{ n }}</option>
+        <option v-for="n in 13" :key="n" :value="n">Fecha {{ n }}</option>
       </select>
     </div>
 
@@ -192,7 +192,7 @@ onMounted(async () => {
 });
 
 const guardarTodosLosPartidos = async () => {
-  // Validar que ningún partido tenga equipos iguales
+
   for (const partido of partidos.value) {
     if (partido.equipo_local === partido.equipo_visitante) {
       mensajeError.value = 'Un equipo no puede jugar contra sí mismo.';
@@ -200,7 +200,7 @@ const guardarTodosLosPartidos = async () => {
     }
   }
 
-  // Validar que todos los campos requeridos estén completos
+
   for (const partido of partidos.value) {
     if (!partido.equipo_local || !partido.equipo_visitante) {
       mensajeError.value = 'Por favor, completa todos los equipos antes de guardar.';
@@ -213,12 +213,11 @@ const guardarTodosLosPartidos = async () => {
   mensajeError.value = '';
 
   try {
-    // Guardar todos los partidos
-    const promesas = partidos.value.map((partido) =>
+       const TodosPartidos = partidos.value.map((partido) =>
       axios.post('/api/torneos/partidos/', partido)
     );
 
-    await Promise.all(promesas);
+    await Promise.all(TodosPartidos);
 
     mensajeExito.value = `¡${partidos.value.length} partido(s) cargado(s) exitosamente!`;
     

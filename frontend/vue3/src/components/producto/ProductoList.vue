@@ -1,7 +1,7 @@
 <template>
-  <h1 class="titulo">Lista de Categorias</h1>
-  <div class="crear-container">
-  <router-link :to="{name:'categorias_create'}">CREAR</router-link>
+  <h1 class="titulo">Lista de Productos</h1>
+    <div class="crear-container">
+  <router-link :to="{name:'productos_create'}">CREAR</router-link>
    </div>
    <div class="volver" >
           <router-link :to="{name:'configuraciones'}"><i class="pi pi-arrow-circle-left" style="font-size: 2rem"></i></router-link>
@@ -11,18 +11,24 @@
       <tr>
         <th>id</th>
         <th>nombre</th>
+        <th>categoria</th>
+        <th>precio</th>
         <th>acciones</th>
       </tr>
     </thead>
     <tbody>
-      <tr v-for="categoria in categorias" :key="categoria.id">
-        <td>{{ categoria.id }}</td>
-        <td>{{ categoria.nombre }}</td>
+      <tr v-for="producto in productos" :key="producto.id">
+        <td>{{ producto.id }}</td>
+        <td>{{ producto.nombre }}</td>
+        <td> {{ producto.categoria }}</td>
+        <td> {{ producto.precio }}</td>
         <td>
-          <router-link :to="{name:'categorias_update',params:{id:categoria.id}}"><i class="pi pi-pencil" style="font-size: 1.5rem" ></i></router-link>
-          <router-link :to="{name:'categorias_show',params:{id:categoria.id}}"><i class="pi pi-eye" style="font-size: 1.5rem"></i></router-link>
-          <button @click.prevent="eliminar(categoria.id as number)"><i class="pi pi-trash" style="font-size: 1.5rem"></i></button>
-                  </td>
+          <router-link :to="{name:'productos_update',params:{id:producto.id}}"><i class="pi pi-pencil" style="font-size: 1.5rem" ></i></router-link>
+          <router-link :to="{name:'productos_show',params:{id:producto.id}}"><i class="pi pi-eye" style="font-size: 1.5rem"></i></router-link>
+          <button @click.prevent="eliminar(producto.id as number)"><i class="pi pi-trash" style="font-size: 1.5rem"></i></button>
+                  </td>     
+       
+       
       </tr>
     </tbody>
   </table>
@@ -30,15 +36,15 @@
 
 <script setup lang="ts">
 import { onMounted, toRefs } from 'vue'
-import useCategoriasStore from '../../stores/categorias'
-const { categorias } = toRefs(useCategoriasStore())
-const { getAll, destroy } = useCategoriasStore()
+import useProductosStore from '@/stores/producto'
+const { productos } = toRefs(useProductosStore())
+const { getAll, destroy } = useProductosStore() 
 
 onMounted(async () => {
   await getAll()
 })
 async function eliminar(id: number) {
-  if (confirm('¿Estás seguro de eliminar esta categoria ' + id + '?')) {
+  if (confirm('¿Estás seguro de eliminar esta producto ' + id + '?')) {
     await destroy(id)
     await getAll()
   }

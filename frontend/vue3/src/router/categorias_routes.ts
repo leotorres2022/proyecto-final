@@ -3,6 +3,9 @@ const categorias_routes = [
     path: '/categorias',
     name: 'categorias',
     component: () => import('../views/CategoriasView.vue'),
+     meta: {
+      requiresAuth: true
+    },
     children: [
       {
         path: '',

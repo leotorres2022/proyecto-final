@@ -7,23 +7,50 @@ from .serializers import DivisionSerializer, PartidoSerializer
 from rest_framework.decorators import api_view
 from rest_framework.permissions import AllowAny
 
-
 class PartidosPorDivisionListView(generics.ListAPIView):
     serializer_class = PartidoSerializer
-    permission_classes = [AllowAny]  # Permitir acceso a todos los usuarios
+
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [AllowAny()]
+        return [IsAdminUserOrGroup()]
+
     def get_queryset(self):
         division_id = self.kwargs['division_id']
-        # Obtenemos la fecha desde la URL (ej: ?fecha=2)
         fecha = self.request.query_params.get('fecha')
-        
-        queryset = Partido.objects.filter(division_id=division_id)
-        
+
+        queryset = Partido.objects.filter(
+            division_id=division_id
+        )
+
         if fecha:
             queryset = queryset.filter(fecha=fecha)
-            
+
         return queryset.order_by('-fecha', 'id')
-# 1. VISTA PARA LISTAR Y CREAR DIVISIONES
-# Esta es la que alimentará tu DivisionList.vue
+
+    def delete(self, request, *args, **kwargs):
+        division_id = self.kwargs['division_id']
+        fecha = request.query_params.get('fecha')
+
+        if fecha is None:
+            return Response(
+                {'error': 'Debe indicar una fecha.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        partidos = Partido.objects.filter(
+            division_id=division_id,
+            fecha=fecha
+        )
+
+        cantidad = partidos.count()
+        partidos.delete()
+
+        return Response({
+            'mensaje': 'Partidos eliminados correctamente.',
+            'cantidad': cantidad
+        })
+
 class DivisionListCreateView(generics.ListCreateAPIView):
     queryset = Division.objects.all()
     serializer_class = DivisionSerializer
@@ -33,7 +60,7 @@ class DivisionListCreateView(generics.ListCreateAPIView):
             return [IsAdminUserOrGroup()]
         return [AllowAny()]
 
-# 2. VISTA PARA VER, EDITAR O ELIMINAR UNA DIVISIÓN ESPECÍFICA
+
 class DivisionRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Division.objects.all()
     serializer_class = DivisionSerializer
@@ -75,11 +102,11 @@ class PartidoCreateView(generics.CreateAPIView):
     serializer_class = PartidoSerializer
     permission_classes = [IsAdminUserOrGroup]  #  solo 'admin' pueden acceder
 
-# 3. TU VISTA DE TABLA DE POSICIONES (Optimizada)
+
 class TablaPosicionesView(APIView):
+    permission_classes = [AllowAny]  
     def get(self, request, division_id):
         equipos = Equipo.objects.filter(division_id=division_id)
-        # Traemos los partidos una sola vez para no saturar la base de datos
         partidos = Partido.objects.filter(division_id=division_id, jugado=True)
         tabla = []
 
@@ -122,7 +149,7 @@ class TablaPosicionesView(APIView):
             stats['dg'] = stats['gf'] - stats['gc']
             tabla.append(stats)
 
-        # Ordenar por puntos, luego diferencia de gol, luego goles a favor
+        #ordenar por puntos y goles
         tabla_ordenada = sorted(
             tabla, 
             key=lambda x: (x['pts'], x['dg'], x['gf']), 

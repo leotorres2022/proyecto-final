@@ -5,6 +5,8 @@
 
         <li><router-link :to="{name:'categorias_list'}">Categorias</router-link></li>
         <li><router-link :to="{name:'talles_list'}">Talles</router-link></li>
+        <li><router-link :to="{name:'productos_list'}">Productos</router-link></li>
+        <li><router-link :to="{name:'stock_list'}">Stock</router-link></li>
 
       </ul>
     </nav>
@@ -17,8 +19,7 @@
 </template>
 
 <script setup lang="ts">
-import useUserStore from '@/stores/user'
-const userStore = useUserStore()
+
 
 </script>
 

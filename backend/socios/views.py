@@ -5,8 +5,7 @@ from .serializers import SocioSerializer
 from rest_framework.permissions import IsAuthenticated
 from .permisos import IsAdminUserOrGroup
 
-# Importamos la función de Telegram para enviar mensajes al crear un socio
-from .utils import enviar_notificacion_telegram
+from .utils import enviar_notificacion_telegram #FUNCION DE TELEGRAM
 
 
 
@@ -18,9 +17,7 @@ class SocioViewSet(viewsets.ModelViewSet):
       
         socio = serializer.save()
         print(f"[Socios] Socio creado: {socio.nombre}, telefono={socio.telefono}")
-        
-        # 2. Una vez guardado con éxito, disparamos la función de Telegram
-        print("[Socios] Llamando a enviar_notificacion_telegram...")
+        print("[Socios] Llamando a enviar_notificacion_telegram...") #SI SE GUARDO CON EXITO MANDO LA FUNCION DE TELEGRAM
         try:
             enviar_notificacion_telegram(
                 nombre_socio=socio.nombre,

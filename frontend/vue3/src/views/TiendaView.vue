@@ -1,12 +1,11 @@
 <template>
    <!-- Ícono de configuración -->
   <router-link
-     v-if="userStore.modo === 'admin'"   :to="{ name: 'configuraciones' }" class="config-link">
+     v-if="userAuthStore.isAuthenticated && (userAuthStore.user?.groups?.includes('admin') || userAuthStore.user?.is_superuser)"   :to="{ name: 'configuraciones' }" class="config-link">
     <i class="pi pi-cog" style="font-size: 2rem"></i>
 
   </router-link>
-
-
+  
   <!-- Lista de productos -->
   <div class="productos-grid">
    
@@ -45,8 +44,10 @@ import useProductosStore from '@/stores/producto'
 import type { Producto } from '@/interfaces/Producto'
 import useUserStore from '@/stores/user'
 import useCategoriasStore from '@/stores/categorias'
+import { useAuthStore } from '@/stores/auth';
 
-const userStore = useUserStore()
+const userAuthStore = useAuthStore()
+
 const router = useRouter()
 const comprasStore = useComprasStore()
 const productosStore = useProductosStore()

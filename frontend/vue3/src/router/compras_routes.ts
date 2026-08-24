@@ -3,6 +3,9 @@ const compras_routes = [
     path: '/compras',
     name: 'compras',
     component: () => import('../views/ComprasView.vue'),
+    meta: {
+  requiresAuth: true
+},
     children: [
       {
         path: '',

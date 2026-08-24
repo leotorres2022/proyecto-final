@@ -1,81 +1,3 @@
-<script setup lang="ts">
-import { onMounted, ref, watch } from 'vue';
-import { storeToRefs } from 'pinia';
-import useDivisionStore from "@/stores/division"; 
-import CargarPartido from '@/components/torneos_division/CargarPartido.vue';
-
-
-// Acceso al store de Pinia
-const store = useDivisionStore();
-const { divisions, tablaPosiciones, partidos } = storeToRefs(store);
-import { useAuthStore } from '@/stores/auth';
-const userAuthStore = useAuthStore();
-
-// --- ESTADO LOCAL NUEVO ---
-const divisionSeleccionada = ref<number | null>(null);
-const fechaSeleccionada = ref<number | null>(3); 
-const cargando = ref(false);
-const mostrarFormularioCarga = ref(false);
-
-
-onMounted(async () => {
-  try {
-    await store.getAll();
-  } catch (error) {
-    console.error("Error al cargar las divisiones:", error);
-  }
-});
-
-// Función para cargar partidos 
-const cargarPartidos = async () => {
-  if (divisionSeleccionada.value) {
-    cargando.value = true;
-    try {
-      await store.getPartidos(divisionSeleccionada.value, fechaSeleccionada.value);
-    } finally {
-      cargando.value = false;
-    }
-  }
-};
-
-const abrirFormularioCarga = async () => {
-  if (!divisionSeleccionada.value) {
-    return;
-  }
-
-  const siguienteFecha = (fechaSeleccionada.value ?? 0) + 1;
-  fechaSeleccionada.value = siguienteFecha;
-  mostrarFormularioCarga.value = true;
-  await cargarPartidos();
-};
-
-const handleGuardadoPartido = async () => {
-  mostrarFormularioCarga.value = false;
-  if (divisionSeleccionada.value) {
-    await cargarPartidos();
-    await store.getTabla(divisionSeleccionada.value);
-  }
-};
-
-// Observador para actualizar datos al cambiar la selección de DIVISIÓN
-watch(divisionSeleccionada, async (nuevoId) => {
-  if (nuevoId) {
-    cargando.value = true;
-    try {
-      // Al cambiar de división, cargamos la tabla completa y los partidos de la fecha elegida
-      await Promise.all([
-        store.getTabla(nuevoId),
-        cargarPartidos() 
-      ]);
-    } catch (error) {
-      console.error("Error al cargar datos del servidor:", error);
-    } finally {
-      cargando.value = false;
-    }
-  }
-});
-</script>
-
 <template>
   <div class="container-full">
     <header class="header-dashboard">
@@ -91,15 +13,15 @@ watch(divisionSeleccionada, async (nuevoId) => {
     <div class="card selector-card">
       <div class="selector-content">
         <label for="division-select"><i class="pi pi-filter"></i> Filtrar por Categoría:</label>
-        <select 
-          id="division-select" 
-          v-model="divisionSeleccionada" 
-          class="custom-select"
-        >
-          <option :value="null" disabled>-- Seleccione una división para visualizar la información --</option>
-          <option v-for="d in divisions" :key="d.id" :value="d.id">
-            {{ d.nombre }} 
-          </option>
+          <select 
+            id="division-select" 
+            v-model="divisionSeleccionada" 
+            class="custom-select"
+          >
+            <option :value="null" disabled>-- Seleccione una división para visualizar la información --</option>
+            <option v-for="d in divisions" :key="d.id" :value="d.id">
+              {{ d.nombre }} 
+            </option>
         </select>
 
         <button  v-if="userAuthStore.isAuthenticated && (userAuthStore.user?.groups?.includes('admin'))"   type="button" class="btn-cargar-partido" @click="abrirFormularioCarga">
@@ -182,9 +104,13 @@ watch(divisionSeleccionada, async (nuevoId) => {
     <div class="filter-container">
       <select v-model="fechaSeleccionada" @change="cargarPartidos" class="fecha-select">
         <option :value="null">Todas las Fechas</option>
-        <option v-for="n in 3" :key="n" :value="n">Fecha {{ n }}</option>
+        <option v-for="n in 13" :key="n" :value="n">Fecha {{ n }}</option>
       </select>
+       <button   type="button"   @click="borrarFecha"  :disabled="!fechaSeleccionada"  >  
+      <i class="pi pi-trash"></i> Borrar Fecha {{ fechaSeleccionada }}
+    </button>
     </div>
+    
   </div>
 
   <div v-if="partidos.length === 0" class="no-matches">
@@ -211,6 +137,105 @@ watch(divisionSeleccionada, async (nuevoId) => {
     </div>
   </div>
 </template>
+<script setup lang="ts">
+import { onMounted, ref, watch } from 'vue';
+import { storeToRefs } from 'pinia';
+import useDivisionStore from "@/stores/division"; 
+import CargarPartido from '@/components/torneos_division/CargarPartido.vue';
+const store = useDivisionStore();
+const { divisions, tablaPosiciones, partidos } = storeToRefs(store);
+import { useAuthStore } from '@/stores/auth';
+const userAuthStore = useAuthStore();
+
+const divisionSeleccionada = ref<number | null>(null);
+const fechaSeleccionada = ref<number | null>(3); 
+const cargando = ref(false);
+const mostrarFormularioCarga = ref(false);
+
+
+
+
+
+onMounted(async () => {
+  try {
+    await store.getAll();
+  } catch (error) {
+    console.error("Error al cargar las divisiones:", error);
+  }
+});
+
+
+const cargarPartidos = async () => {
+  if (divisionSeleccionada.value) {
+    cargando.value = true;
+    try {
+      await store.getPartidos(divisionSeleccionada.value, fechaSeleccionada.value);
+    } finally {
+      cargando.value = false;
+    }
+  }
+};
+
+
+async function borrarFecha() {
+  if (    divisionSeleccionada.value === null ||    fechaSeleccionada.value === null  ) {
+    alert('Seleccioná una división y una fecha')
+    return
+  }
+  const confirmar = confirm(
+    `¿Seguro que querés borrar todos los partidos de la Fecha ${fechaSeleccionada.value}?`
+  )
+  if (!confirmar) {
+    return
+  }
+  try {
+    await store.borrarPartidosFecha(   divisionSeleccionada.value,  fechaSeleccionada.value    )
+    alert('Partidos de la fecha eliminados correctamente')
+  } catch (error) {
+    console.error('Error al borrar la fecha:', error)
+    alert('No se pudo eliminar la fecha')
+  }
+}
+
+const abrirFormularioCarga = async () => {
+  if (!divisionSeleccionada.value) {
+    return;
+  }
+
+  const siguienteFecha = (fechaSeleccionada.value ?? 0) + 1;
+  fechaSeleccionada.value = siguienteFecha;
+  mostrarFormularioCarga.value = true;
+  await cargarPartidos();
+};
+
+const handleGuardadoPartido = async () => {
+  mostrarFormularioCarga.value = false;
+  if (divisionSeleccionada.value) {
+    await cargarPartidos();
+    await store.getTabla(divisionSeleccionada.value);
+  }
+};
+
+
+watch(divisionSeleccionada, async (nuevoId) => {
+  if (nuevoId) {
+    cargando.value = true;
+    try {
+
+      await Promise.all([
+        store.getTabla(nuevoId),
+        cargarPartidos() 
+      ]);
+    } catch (error) {
+      console.error("Error al cargar datos del servidor:", error);
+    } finally {
+      cargando.value = false;
+    }
+  }
+});
+</script>
+
+
 
 <style scoped>
 /* Contenedor Fluido al 95% */
@@ -264,10 +289,10 @@ watch(divisionSeleccionada, async (nuevoId) => {
 .btn-secondary:hover { background: #334155; }
 .formulario-card { margin-bottom: 25px; }
 
-/* Layout Dashboard */
+/*  Dashboard */
 .dashboard-layout {
   display: grid;
-  grid-template-columns: 2fr 1fr; /* 66% Tabla, 33% Resultados */
+  grid-template-columns: 2fr 1fr; /* 2/3 tabla  Tabla, 173 resultados Resultados */
   gap: 25px;
   align-items: start;
 }

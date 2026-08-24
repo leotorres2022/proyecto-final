@@ -1,28 +1,81 @@
 <template>
-
-<div class="detalle-categoria">
-  <h2><i class="pi pi-tag" style="margin-right: 8px"></i>Detalle de la Categoria</h2>
-  <p><i class="pi pi-user" style="margin-right: 8px"></i><strong>Nombre:</strong> <span class="dato">{{ categoria.nombre }}</span></p>
-  <p><i class="pi pi-hash" style="margin-right: 8px"></i><strong>ID:</strong> <span class="dato">{{ categoria.id }}</span></p>
-</div>
-
-<div class="volver" >
-    <router-link :to="{name:'categorias_list'}"><i class="pi pi-arrow-circle-left" style="font-size: 2rem"></i></router-link>
+  <div class="detalle-producto">
+    <h2>
+      <i class="pi pi-box" style="margin-right: 8px"></i>
+      Detalle del Producto
+    </h2>
+    <p>
+      <i class="pi pi-user" style="margin-right: 8px"></i>
+      <strong>Nombre:</strong>
+      <span class="dato">{{ producto.nombre }}</span>
+    </p>
+    <p>
+      <i class="pi pi-hash" style="margin-right: 8px"></i>
+      <strong>ID:</strong>
+      <span class="dato">{{ producto.id }}</span>
+    </p>
+    <p>
+      <i class="pi pi-dollar" style="margin-right: 8px"></i>
+      <strong>Precio:</strong>
+      <span class="dato">
+        ${{ producto.precio.toLocaleString() }}
+      </span>
+    </p>
+    <p>
+      <i class="pi pi-tag" style="margin-right: 8px"></i>
+      <strong>ID Categoría:</strong>
+      <span class="dato">{{ producto.categoria }}</span>
+    </p>
+    <div v-if="producto.imagen">
+      <strong>Imagen:</strong>
+      <br>
+      <img
+        :src="producto.imagen"
+        :alt="producto.nombre"
+        style="max-width: 250px; margin-top: 10px;"
+      >
+    </div>
+    <div v-else>
+      <p>
+        <strong>Imagen:</strong>
+        Sin imagen disponible
+      </p>
+    </div>
+  </div>
+  <div class="volver">
+    <router-link :to="{ name: 'productos_list' }">
+      <i
+        class="pi pi-arrow-circle-left"
+        style="font-size: 2rem"
+      ></i>
+    </router-link>
   </div>
 </template>
+
 <script setup lang="ts">
-import { toRefs } from 'vue';
-import  UseCategoriasStore from '../../stores/categorias'
-import { useRoute} from 'vue-router';
-import { onMounted } from 'vue';
+
+import { toRefs, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+import UseProductosStore from '../../stores/producto'
+
 const route = useRoute()
-const { categoria: categoria,categorias} = toRefs(UseCategoriasStore())
-const {update} = UseCategoriasStore()
+const productosStore = UseProductosStore()
+const { producto, productos } = toRefs(productosStore)
 onMounted(async () => {
   const id = route.params.id
-  console.log('ID de la categoria a editar:', id)
-const encontrada= categorias.value.find(categoria => categoria.id == parseInt(id as string))
-categoria.value =  encontrada ?? { nombre: '' }
+  console.log('ID del producto:', id)
+  const encontrado = productos.value.find(
+    producto => producto.id == parseInt(id as string)
+  )
+
+  producto.value = encontrado ?? {
+    id: 0,
+    nombre: '',
+    precio: 0,
+    categoria: 0,
+    imagen: null
+  }
+
 })
 
 </script>
@@ -30,7 +83,7 @@ categoria.value =  encontrada ?? { nombre: '' }
 
 <style scoped>
 
-.detalle-categoria {
+.detalle-producto {
   max-width: 600px;
   margin: 2rem auto;
   padding: 2rem;
@@ -41,13 +94,13 @@ categoria.value =  encontrada ?? { nombre: '' }
   font-family: 'Segoe UI', sans-serif;
 }
 
-.detalle-categoria h2 {
+.detalle-producto h2 {
   text-align: center;
   color: #444;
   margin-bottom: 1.5rem;
 }
 
-.detalle-categoria p {
+.detalle-producto p {
   margin: 1rem 0;
   font-size: 1.1rem;
   display: flex;

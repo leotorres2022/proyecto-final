@@ -2,7 +2,11 @@ const tienda_routes = [
   {
     path: '/tienda',
     name: 'tienda',
-    component: () => import('../views/TiendaView.vue') 
+    component: () => import('../views/TiendaView.vue') ,
+    meta: {
+      requiresAuth: true
+    },
+    
    }
 ]
 

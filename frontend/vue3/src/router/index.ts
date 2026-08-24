@@ -11,6 +11,7 @@ import talles_routes from './talles_routes'
 import compras_routes from './compras_routes'
 import division_routes from './division_routes'
 import LoginView from '@/views/LoginView.vue' 
+import producto_routes from './producto_routes'
 import  { useAuthStore } from '@/stores/auth' 
 
 
@@ -31,6 +32,7 @@ const router = createRouter({
   ...talles_routes,
   ...compras_routes,
   ...division_routes,
+  ...producto_routes,
     { path: '/carrito', name: 'carrito', component: CarritoView },
     { path: '/configuraciones', name: 'configuraciones', component: ConfiguracionesView },
     { path: '/club', name: 'club', component: ClubView ,

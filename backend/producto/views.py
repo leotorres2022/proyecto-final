@@ -23,3 +23,23 @@ class StockPorTalleView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         except TalleStock.DoesNotExist:
             return Response({"stock": 0}, status=status.HTTP_200_OK)
+
+class ListaStockView(APIView):
+
+    def get(self, request):
+
+        stocks = TalleStock.objects.select_related(
+            'producto',
+            'producto__categoria',
+            'talle'
+        ).all()
+
+        serializer = TalleStockSerializer(
+            stocks,
+            many=True
+        )
+
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK
+        )        

@@ -21,11 +21,12 @@
       <router-link :to="{ name: 'compras_show', params: { id: compra.id } }">
     <i class="pi pi-eye" style="font-size: 1.5rem"></i>
   </router-link>
- 
-      <router-link :to="{ name: 'compras_update', params: { id: compra.id } }">
+  <router-link :to="{ name: 'compras_update', params: { id: compra.id } }">
     <i class="pi pi-pencil" style="font-size: 1.5rem"></i>
   </router-link>
-  </td>
+  <button @click.prevent="eliminar(compra.id as number)"><i class="pi pi-trash" style="font-size: 1.5rem"></i></button>
+  </td>  
+  
   </tr>
     </tbody>
   </table>
@@ -37,8 +38,7 @@ import useComprasStore from '../../stores/compras'
 import useTallesStore from '../../stores/talles'
 import useSociosStore from '../../stores/socios'
 import useCategoriasStore from '../../stores/categorias'
-import useUserStore from '@/stores/user'
-const userStore = useUserStore()
+
 
 const comprasStore = useComprasStore()
 const { compras } = toRefs(comprasStore)
